@@ -1,0 +1,49 @@
+.instructions {
+  width: 100%;
+  background-color: #f0f9ff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 0;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.container h2 {
+  color: #0f172a;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.steps {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.steps p {
+  margin: 0.5rem 0;
+  color: #334155;
+}
+
+.steps ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.steps li {
+  margin: 0.5rem 0;
+  color: #334155;
+}
+
+.tip {
+  background-color: #fef3c7;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-top: 1rem !important;
+  color: #92400e !important;
+} 

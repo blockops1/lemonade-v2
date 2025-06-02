@@ -1,101 +1,81 @@
 # 🍋 Lemonade Stand Game
 
-A modern web-based implementation of the classic Lemonade Stand management game, built with Next.js and TypeScript. Run your own virtual lemonade business while managing resources, pricing, and advertising strategies!
+A modern web3 take on the classic Lemonade Stand game, built with Next.js and zkVerify wallet integration.
 
-## 🎮 Game Features
+## 🎮 Play Now
 
-- **7-Day Business Challenge**: Run your lemonade stand for 7 days and try to make the most profit
-- **Dynamic Weather System**: Adapt to different weather conditions that affect customer behavior
-- **Resource Management**: 
-  - Buy lemons, sugar, and ice
-  - Manage inventory with realistic constraints (ice melts daily!)
-  - Recipe: 2 lemons, 1 sugar, 3 ice per cup
+Visit [https://lemonade-game.vercel.app](https://lemonade-game.vercel.app) to play!
 
-- **Business Strategies**:
-  - Set your lemonade price ($0.25 to $2.00)
-  - Choose advertising strategies:
-    - No advertising (free, -20% customers)
-    - Flyers ($3/day, +20% customers)
-    - Social media ($8/day, +80% customers)
-    - Radio ($15/day, +150% customers)
+## 🎯 Game Overview
 
-- **Dynamic Pricing Impact**: Customer demand varies based on your pricing strategy
-- **Daily Results Tracking**: Monitor sales, revenue, and resource usage
+Run your virtual lemonade stand and try to make the most profit in 7 days! You'll need to:
+- Manage your inventory (lemons, sugar, ice)
+- Set your recipe and prices
+- Choose advertising strategies
+- Watch the weather and adapt your strategy
+- Make smart business decisions to maximize profit
 
-## 🚀 Getting Started
+## 🎲 Game Rules
 
-### Prerequisites
+1. Start with $20 initial capital
+2. Buy ingredients at market prices:
+   - Lemons: $0.50 each
+   - Sugar: $0.25 per unit
+   - Ice: $0.10 per cube
+3. Set your recipe (lemons, sugar, ice per cup)
+4. Choose your selling price
+5. Select advertising options
+6. Weather affects your sales:
+   - Sunny: Best for sales
+   - Cloudy: Moderate sales
+   - Rainy: Lower sales
+7. Ice melts at the end of each day
+8. Game ends after 7 days
+9. Your final score is your total money
 
-- Node.js (v18 or higher)
-- npm or yarn
+## 🔧 Development Setup
 
-### Installation
-
-1. Clone the repository:
 ```bash
+# Clone the repository
 git clone https://github.com/blockops1/lemonade-v2.git
+
+# Install dependencies
 cd lemonade-v2
-```
-
-2. Install dependencies:
-```bash
 npm install
-# or
-yarn install
-```
 
-3. Run the development server:
-```bash
+# Run development server
 npm run dev
-# or
-yarn dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser to start playing!
+## 🛠 Tech Stack
 
-## 🎯 Game Objectives
+- Next.js 14
+- TypeScript
+- zkVerify Wallet Integration
+- Vercel Analytics
+- CSS Modules
 
-- Start with $20.00 initial capital
-- Run your business for 7 days
-- Make strategic decisions about:
-  - Inventory purchases
-  - Pricing strategy
-  - Advertising investments
-- Try to make more money than your initial investment
-- Your final score is your total money at the end of day 7
+## 📈 Features
 
-## 💡 Tips for Success
-
-1. **Weather Matters**: 
-   - Hot days bring more customers
-   - Rainy days reduce foot traffic
-   - Check the forecast to plan ahead
-
-2. **Price Wisely**:
-   - Lower prices attract more customers
-   - Higher prices mean better profit per cup
-   - Find the sweet spot for maximum profit
-
-3. **Manage Resources**:
-   - Don't let ice melt overnight
-   - Keep enough ingredients for expected demand
-   - Balance inventory costs with potential sales
-
-4. **Advertising Strategy**:
-   - Start with cheaper options
-   - Upgrade advertising as you make profit
-   - Don't spend on expensive ads if you can't afford ingredients
-
-## 🛠️ Built With
-
-- [Next.js](https://nextjs.org/) - React framework
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
-- Modern CSS Modules for styling
-
-## 📝 License
-
-This project is open source and available under the MIT License.
+- Real-time weather system
+- Dynamic pricing
+- Inventory management
+- Advertising system
+- Daily sales reports
+- Wallet integration
+- Mobile responsive design
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/blockops1/lemonade-v2/issues).
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📝 License
+
+MIT License - feel free to use this code for your own projects!
+
+## 🙏 Credits
+
+- Original Lemonade Stand game concept
+- zkVerify team for wallet integration
+- Next.js team for the amazing framework
+- All contributors and players!
