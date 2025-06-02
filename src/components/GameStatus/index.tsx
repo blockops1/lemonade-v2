@@ -62,7 +62,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
 
       {lastResult && !lastResult.gameOver && (
         <div className={styles.lastResult}>
-          <h3>Last Day's Results</h3>
+          <h3>Last Day&apos;s Results</h3>
           <div className={styles.resultGrid}>
             <div className={styles.resultItem}>
               <span>Sales:</span>
