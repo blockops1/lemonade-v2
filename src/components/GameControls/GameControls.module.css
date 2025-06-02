@@ -1,0 +1,220 @@
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.inventory {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inventory h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.ingredientControl {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.ingredientControl label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.ingredientControl input {
+  width: 80px;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.ingredientControl button {
+  padding: 0.5rem 1rem;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.ingredientControl button:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.ingredientControl button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.pricing {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pricing h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.pricing label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.pricing input {
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.priceHint {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+.simulateButton {
+  padding: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.simulateButton:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.simulateButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.advertising {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.advertising h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.advertising p {
+  margin: 0;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.advertisingOptions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.adButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #ced4da;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  min-height: 100px;
+  text-align: center;
+}
+
+.adButton:hover:not(:disabled) {
+  border-color: #007bff;
+  background: #f8f9fa;
+  transform: translateY(-2px);
+}
+
+.adButton.selected {
+  background: #007bff;
+  color: white;
+  border-color: #0056b3;
+}
+
+.adButton.selected:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.adButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.adType {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.adCost {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.adButton.selected .adCost {
+  color: #fff;
+}
+
+.adEffect {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.priceSelect {
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 100px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.priceSelect:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+} 

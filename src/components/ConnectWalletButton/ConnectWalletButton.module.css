@@ -1,0 +1,8 @@
+.walletButton {
+    background-color: #4CAF50;
+}
+
+.walletButton:hover {
+    background-color: #3e8e41;
+    color: #e6ffe6;
+}
