@@ -4,7 +4,7 @@ A modern web3 take on the classic Lemonade Stand game, built with Next.js and zk
 
 ## 🎮 Play Now
 
-Visit [https://lemonade-game.vercel.app](https://lemonade-game.vercel.app) to play!
+Visit [https://lemonade-v2-pzwz5r3vv-blockops-projects-034db6b0.vercel.app](https://lemonade-v2-pzwz5r3vv-blockops-projects-034db6b0.vercel.app) to play!
 
 ## 🎯 Game Overview
 
