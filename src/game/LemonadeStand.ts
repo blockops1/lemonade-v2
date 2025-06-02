@@ -60,7 +60,32 @@ export class LemonadeStand {
       prices: {
         lemonade: 1.00
       },
-      weather: this.generateWeather(), // Generate initial forecast
+      weather: 'Sunny', // Always start with Sunny weather
+      customers: 0,
+      advertising: {
+        type: 'none',
+        ...this.ADVERTISING_OPTIONS.none
+      },
+      salesHistory: [],
+      gameOver: false,
+      won: false,
+      finalScore: null
+    };
+  }
+
+  public resetGame(): void {
+    this.state = {
+      day: 1,
+      money: 20.00,
+      inventory: {
+        lemons: 0,
+        sugar: 0,
+        ice: 0
+      },
+      prices: {
+        lemonade: 1.00
+      },
+      weather: 'Sunny',
       customers: 0,
       advertising: {
         type: 'none',

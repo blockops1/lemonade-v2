@@ -14,7 +14,12 @@ interface GameActions {
     won: boolean;
     finalScore: number | null;
     advertisingCost: number;
+    iceUsed: number;
+    iceMelted: number;
+    lemonsUsed: number;
+    sugarUsed: number;
   };
+  resetGame: () => void;
   getGameSummary: () => {
     totalDays: number;
     totalRevenue: number;
@@ -58,6 +63,11 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
     return result;
   }, [game, updateState]);
 
+  const resetGame = useCallback(() => {
+    game.resetGame();
+    updateState();
+  }, [game, updateState]);
+
   const getGameSummary = useCallback(() => {
     return game.getGameSummary();
   }, [game]);
@@ -69,6 +79,7 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       setLemonadePrice,
       setAdvertising,
       simulateDay,
+      resetGame,
       getGameSummary
     }
   ];

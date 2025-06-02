@@ -10,6 +10,7 @@ interface GameStatusProps {
     ice: number;
   };
   weather: string;
+  onReset: () => void;
   lastResult?: {
     sales: number;
     revenue: number;
@@ -31,57 +32,35 @@ export const GameStatus: React.FC<GameStatusProps> = ({
   money,
   inventory,
   weather,
-  lastResult
+  lastResult,
+  onReset
 }) => {
   return (
     <div className={styles.status}>
-      <div className={styles.mainStats}>
-        <div className={styles.stat}>
-          <h3>Day</h3>
-          <p>{day}/7</p>
+      <div className={styles.header}>
+        <div className={styles.mainStats}>
+          <div className={styles.stat}>
+            <h3>Day</h3>
+            <p>{day}/7</p>
+          </div>
+          <div className={styles.stat}>
+            <h3>Money</h3>
+            <p>${money.toFixed(2)}</p>
+          </div>
+          <div className={styles.stat}>
+            <h3>Weather</h3>
+            <p>{weather}</p>
+          </div>
         </div>
-        <div className={styles.stat}>
-          <h3>Money</h3>
-          <p>${money.toFixed(2)}</p>
-        </div>
-        <div className={styles.stat}>
-          <h3>Weather</h3>
-          <p>{weather}</p>
-        </div>
+        <button 
+          onClick={onReset}
+          className={styles.resetButton}
+        >
+          Reset Game
+        </button>
       </div>
 
-      <div className={styles.inventory}>
-        <h3>Inventory</h3>
-        <div className={styles.inventoryGrid}>
-          <div className={styles.inventoryItem}>
-            <span>Lemons:</span>
-            <span>{inventory.lemons}</span>
-          </div>
-          <div className={styles.inventoryItem}>
-            <span>Sugar:</span>
-            <span>{inventory.sugar}</span>
-          </div>
-          <div className={styles.inventoryItem}>
-            <span>Ice:</span>
-            <span>{inventory.ice}</span>
-          </div>
-        </div>
-      </div>
-
-      {lastResult?.gameOver && (
-        <div className={`${styles.gameOver} ${lastResult.won ? styles.won : styles.lost}`}>
-          <h2>Game Complete!</h2>
-          <p>Final Money: ${lastResult.finalScore?.toFixed(2)}</p>
-          {lastResult.won && (
-            <p>You made a profit of ${(money - 20).toFixed(2)}!</p>
-          )}
-          {!lastResult.won && (
-            <p>You lost ${(20 - money).toFixed(2)} of your initial investment.</p>
-          )}
-        </div>
-      )}
-
-      {lastResult && (
+      {lastResult && !lastResult.gameOver && (
         <div className={styles.lastResult}>
           <h3>Last Day's Results</h3>
           <div className={styles.resultGrid}>
@@ -122,6 +101,42 @@ export const GameStatus: React.FC<GameStatusProps> = ({
               <span>${lastResult.advertisingCost.toFixed(2)}</span>
             </div>
           </div>
+        </div>
+      )}
+
+      <div className={styles.inventory}>
+        <h3>Inventory</h3>
+        <div className={styles.inventoryGrid}>
+          <div className={styles.inventoryItem}>
+            <span>Lemons:</span>
+            <span>{inventory.lemons}</span>
+          </div>
+          <div className={styles.inventoryItem}>
+            <span>Sugar:</span>
+            <span>{inventory.sugar}</span>
+          </div>
+          <div className={styles.inventoryItem}>
+            <span>Ice:</span>
+            <span>{inventory.ice}</span>
+          </div>
+        </div>
+      </div>
+
+      {lastResult?.gameOver && (
+        <div className={`${styles.gameOver} ${lastResult.won ? styles.won : styles.lost}`}>
+          <h2>Game Complete!</h2>
+          <p>Final Money: ${lastResult.finalScore?.toFixed(2)}</p>
+          {lastResult.won ? (
+            <p>You made a profit of ${(money - 20).toFixed(2)}!</p>
+          ) : (
+            <p>You lost ${(20 - money).toFixed(2)} of your initial investment.</p>
+          )}
+          <button 
+            onClick={onReset}
+            className={styles.playAgainButton}
+          >
+            Play Again
+          </button>
         </div>
       )}
     </div>

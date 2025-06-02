@@ -18,6 +18,10 @@ export default function Home() {
     won: boolean;
     finalScore: number | null;
     advertisingCost: number;
+    iceUsed: number;
+    iceMelted: number;
+    lemonsUsed: number;
+    sugarUsed: number;
   } | null>(null);
   
   const { selectedAccount, selectedWallet } = useAccount();
@@ -28,14 +32,26 @@ export default function Home() {
     setLastResult(result);
   };
 
+  const handleReset = () => {
+    gameActions.resetGame();
+    setLastResult(null);
+  };
+
   return (
     <div className={styles.page}>
       <div className={styles.main}>
         <Image
-          src="/zk_Verify_logo_full_black.png"
-          alt="zkVerify Logo"
-          width={450}
-          height={150}
+          src="/lemonade2.jpg"
+          alt="Lemonade Stand"
+          width={600}
+          height={400}
+          priority
+          style={{ 
+            objectFit: 'cover', 
+            objectPosition: 'center top',
+            borderRadius: '8px',
+            maxHeight: '300px'
+          }}
         />
 
         <ConnectWalletButton onWalletConnected={() => {}} />
@@ -47,6 +63,7 @@ export default function Home() {
             inventory={gameState.inventory}
             weather={gameState.weather}
             lastResult={lastResult || undefined}
+            onReset={handleReset}
           />
 
           <GameControls

@@ -1,0 +1,141 @@
+.status {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.mainStats {
+  display: flex;
+  gap: 20px;
+}
+
+.resetButton {
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.resetButton:hover {
+  background-color: #e0e0e0;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat h3 {
+  margin: 0;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.stat p {
+  margin: 5px 0 0;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.inventory {
+  margin-top: 20px;
+}
+
+.inventory h3 {
+  margin: 0 0 10px;
+  color: #333;
+}
+
+.inventoryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.inventoryItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.lastResult {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.lastResult h3 {
+  margin: 0 0 10px;
+  color: #333;
+}
+
+.resultGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.resultItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.gameOver {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.won {
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+}
+
+.lost {
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+}
+
+.playAgainButton {
+  margin-top: 15px;
+  padding: 10px 20px;
+  font-size: 1.1em;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.playAgainButton:hover {
+  background-color: #43a047;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 
