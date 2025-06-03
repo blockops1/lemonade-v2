@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.wrapBytes = exports.unwrapBytes = exports.isWrapped = exports.PREFIX = exports.POSTFIX = exports.ETHEREUM = void 0;
+const util_1 = require("@polkadot/util");
+exports.ETHEREUM = util_1.U8A_WRAP_ETHEREUM;
+exports.POSTFIX = util_1.U8A_WRAP_POSTFIX;
+exports.PREFIX = util_1.U8A_WRAP_PREFIX;
+exports.isWrapped = util_1.u8aIsWrapped;
+exports.unwrapBytes = util_1.u8aUnwrapBytes;
+exports.wrapBytes = util_1.u8aWrapBytes;

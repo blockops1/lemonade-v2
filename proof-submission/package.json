@@ -1,0 +1,15 @@
+{
+  "name": "proof-submission",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "zkverifyjs": "^0.14.0"
+  },
+  "description": ""
+}
