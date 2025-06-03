@@ -13,6 +13,7 @@ export default function Home() {
     sales: number;
     revenue: number;
     weather: string;
+    yesterdayWeather: string;
     customersServed: number;
     gameOver: boolean;
     won: boolean;
@@ -22,6 +23,20 @@ export default function Home() {
     iceMelted: number;
     lemonsUsed: number;
     sugarUsed: number;
+    financialDetails: {
+      revenue: number;
+      costs: {
+        total: number;
+        ingredients: {
+          total: number;
+          lemons: number;
+          sugar: number;
+          ice: number;
+        };
+        advertising: number;
+      };
+      profit: number;
+    };
   } | null>(null);
   
   const { selectedAccount, selectedWallet } = useAccount();
@@ -72,6 +87,7 @@ export default function Home() {
             money={gameState.money}
             inventory={gameState.inventory}
             weather={gameState.weather}
+            yesterdayWeather={gameState.yesterdayWeather}
             lastResult={lastResult || undefined}
             onReset={handleReset}
             onGenerateProof={handleGenerateProof}

@@ -29,10 +29,18 @@ export const GameControls: React.FC<GameControlsProps> = ({
     sugar: 0,
     ice: 0
   });
-  const [price, setPrice] = useState(1.00);
+  const [price, setPrice] = useState(3.00);  // Start at $3.00
 
   const PRICE_OPTIONS = [
-    0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 2.00
+    0.50,  // 5 units - lowest price
+    1.00,  // 10 units
+    2.00,  // 20 units
+    2.50,  // 25 units
+    3.00,  // 30 units (default)
+    3.50,  // 35 units
+    4.00,  // 40 units
+    5.00,  // 50 units
+    6.00   // 60 units - highest price
   ];
 
   const handleQuantityChange = (item: 'lemons' | 'sugar' | 'ice', value: string) => {
@@ -59,11 +67,11 @@ export const GameControls: React.FC<GameControlsProps> = ({
     <div className={styles.controls}>
       <div className={styles.inventory}>
         <h3>Buy Ingredients</h3>
-        <p>Available Money: ${currentMoney.toFixed(2)}</p>
+        <p>Available Money: ${(currentMoney / 10).toFixed(2)}</p>
         
         <div className={styles.ingredientControl}>
           <label>
-            Lemons ($0.05 each):
+            Lemons ($0.50 each):
             <input
               type="number"
               min="0"
@@ -82,7 +90,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
 
         <div className={styles.ingredientControl}>
           <label>
-            Sugar ($0.03 each):
+            Sugar ($0.30 each):
             <input
               type="number"
               min="0"
@@ -101,7 +109,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
 
         <div className={styles.ingredientControl}>
           <label>
-            Ice ($0.02 each):
+            Ice ($0.20 each):
             <input
               type="number"
               min="0"
@@ -140,7 +148,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
 
       <div className={styles.advertising}>
         <h3>Advertising Strategy</h3>
-        <p>Current: {currentAdvertising.type} (Cost: ${currentAdvertising.cost.toFixed(2)}, Customer Multiplier: {currentAdvertising.multiplier}x)</p>
+        <p>Current: {currentAdvertising.type} (Cost: ${(currentAdvertising.cost / 10).toFixed(2)}, Customer Multiplier: {currentAdvertising.multiplier}x)</p>
         <div className={styles.advertisingOptions}>
           <button
             onClick={() => onSetAdvertising('none')}
@@ -153,29 +161,29 @@ export const GameControls: React.FC<GameControlsProps> = ({
           </button>
           <button
             onClick={() => onSetAdvertising('flyers')}
-            disabled={disabled || currentMoney < 3}
+            disabled={disabled || currentMoney < 90}
             className={`${styles.adButton} ${currentAdvertising.type === 'flyers' ? styles.selected : ''}`}
           >
             <span className={styles.adType}>Flyers</span>
-            <span className={styles.adCost}>$3/day</span>
+            <span className={styles.adCost}>$9/day</span>
             <span className={styles.adEffect}>+20% Customers</span>
           </button>
           <button
             onClick={() => onSetAdvertising('social')}
-            disabled={disabled || currentMoney < 8}
+            disabled={disabled || currentMoney < 240}
             className={`${styles.adButton} ${currentAdvertising.type === 'social' ? styles.selected : ''}`}
           >
             <span className={styles.adType}>Social Media</span>
-            <span className={styles.adCost}>$8/day</span>
+            <span className={styles.adCost}>$24/day</span>
             <span className={styles.adEffect}>+80% Customers</span>
           </button>
           <button
             onClick={() => onSetAdvertising('radio')}
-            disabled={disabled || currentMoney < 15}
+            disabled={disabled || currentMoney < 450}
             className={`${styles.adButton} ${currentAdvertising.type === 'radio' ? styles.selected : ''}`}
           >
             <span className={styles.adType}>Radio</span>
-            <span className={styles.adCost}>$15/day</span>
+            <span className={styles.adCost}>$45/day</span>
             <span className={styles.adEffect}>+150% Customers</span>
           </button>
         </div>
@@ -190,4 +198,4 @@ export const GameControls: React.FC<GameControlsProps> = ({
       </button>
     </div>
   );
-}; 
+};

@@ -136,46 +136,53 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       const dailyStates: DailyState[] = [];
 
       // Calculate states iteratively instead of using map
-      let prevMoney = 2000; // Starting money in cents (20.00)
-      let prevLemons = 0;
-      let prevSugar = 0;
-      let prevIce = 0;
+      let prevMoney = 2000; // Starting money in 10-cent increments (200.00)
+      let prevLemons = 0;   // Start with 0 used ingredients
+      let prevSugar = 0;    // Start with 0 used ingredients
+      let prevIce = 0;      // Start with 0 used ingredients
       
       for (let index = 0; index < sortedHistory.length; index++) {
         const day = sortedHistory[index];
         
-        // Calculate revenue and costs in cents
-        const revenueInCents = Math.floor(day.revenue * 100);
-        const adCostInCents = day.advertisingCost * 100;
-        const ingredientCostInCents = 
-          (day.lemonsUsed * 5) +  // 5 cents per lemon
-          (day.sugarUsed * 3) +   // 3 cents per sugar
-          ((day.iceUsed + day.iceMelted) * 2);  // 2 cents per ice
+        // Revenue and costs are already in 10-cent units
+        const revenueInTens = day.revenue;
+        const adCostInTens = day.advertisingCost;
+        
+        // Calculate total costs for this day
+        const totalCosts = adCostInTens;  // Only include advertising cost here
+                                         // Ingredient costs were already paid when buying
+
+        // Check if player has enough money
+        if (prevMoney < totalCosts) {
+          throw new Error(`Not enough money on day ${day.day}: Need ${totalCosts} 10-cent units but only have ${prevMoney} 10-cent units`);
+        }
 
         // Calculate current money according to circuit validation
-        const currMoney = prevMoney + revenueInCents - (ingredientCostInCents + adCostInCents);
+        const currMoney = prevMoney + revenueInTens - totalCosts;
 
-        // Calculate current inventory according to circuit validation
-        const currLemons = day.lemonsUsed;  // What was used this day
-        const currSugar = day.sugarUsed;    // What was used this day
-        const currIce = 0;                  // Ice always melts
-
-        // Verify money is within circuit bounds
-        if (currMoney > 65535 || currMoney < 0) {
-          throw new Error(`Money value ${currMoney} exceeds circuit's 16-bit limit on day ${day.day}`);
+        // Verify money is non-negative and within circuit bounds
+        if (currMoney < 0) {
+          throw new Error(`Money cannot be negative on day ${day.day}: ${currMoney}`);
         }
+        if (currMoney > 32767) { // 15-bit limit (2^15 - 1)
+          throw new Error(`Money value ${currMoney} exceeds circuit's 15-bit limit on day ${day.day}`);
+        }
+
+        // Calculate accumulated used ingredients
+        const totalLemonsUsed = prevLemons + day.lemonsUsed;
+        const totalSugarUsed = prevSugar + day.sugarUsed;
+        const totalIceUsed = prevIce + day.iceUsed + day.iceMelted;
 
         dailyStates.push([
           currMoney,
-          currLemons,
-          currSugar,
-          currIce
+          totalLemonsUsed,
+          totalSugarUsed,
+          totalIceUsed
         ]);
 
         console.log(`\nProcessing state for Day ${day.day}:`, {
-          revenueInCents,
-          adCostInCents,
-          ingredientCostInCents,
+          revenueInTens,
+          adCostInTens,
           prevMoney,
           currMoney,
           lemonsUsed: day.lemonsUsed,
@@ -183,14 +190,20 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
           iceUsed: day.iceUsed,
           iceMelted: day.iceMelted,
           revenue: day.revenue,
-          advertisingCost: day.advertisingCost
+          advertisingCost: day.advertisingCost,
+          totalLemonsUsed,
+          totalSugarUsed,
+          totalIceUsed,
+          prevLemons,
+          prevSugar,
+          prevIce
         });
 
         // Update previous state for next iteration
         prevMoney = currMoney;
-        prevLemons = currLemons;
-        prevSugar = currSugar;
-        prevIce = currIce;
+        prevLemons = totalLemonsUsed;
+        prevSugar = totalSugarUsed;
+        prevIce = totalIceUsed;
       }
 
       console.log('\nDaily States:', JSON.stringify(dailyStates, null, 2));
@@ -231,15 +244,18 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       console.log('\nDaily Recipes:', JSON.stringify(dailyRecipes, null, 2));
 
       const dailyPrices = sortedHistory.map(day => {
-        // Convert price to cents
-        const priceInCents = Math.floor(day.price * 100);
-        if (priceInCents <= 0) {
+        // Price is already in 10-cent units
+        const priceInTens = day.price;
+        if (priceInTens <= 0) {
           throw new Error(`Invalid price on day ${day.day}: Must be greater than 0`);
         }
-        return priceInCents;
+        if (priceInTens % 10 !== 0) {
+          throw new Error(`Invalid price on day ${day.day}: Must be a multiple of 10 cents`);
+        }
+        return priceInTens;
       });
 
-      console.log('\nDaily Prices (in cents):', JSON.stringify(dailyPrices, null, 2));
+      console.log('\nDaily Prices (in 10-cent increments):', JSON.stringify(dailyPrices, null, 2));
 
       const dailyWeather = sortedHistory.map(day => {
         // Convert weather string to circuit value
@@ -266,14 +282,14 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
           case 0:
             adValue = 0;  // none
             break;
-          case 3:
-            adValue = 1;  // flyers ($3)
+          case 30:
+            adValue = 1;  // flyers ($3.00 -> 30 in 10-cent increments)
             break;
-          case 8:
-            adValue = 2;  // social ($8)
+          case 80:
+            adValue = 2;  // social ($8.00 -> 80 in 10-cent increments)
             break;
-          case 15:
-            adValue = 3;  // radio ($15)
+          case 150:
+            adValue = 3;  // radio ($15.00 -> 150 in 10-cent increments)
             break;
           default:
             throw new Error(`Invalid advertising cost on day ${day.day}: ${day.advertisingCost}`);
@@ -329,11 +345,11 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       console.log('dailyWeather:', JSON.stringify(dailyWeather, null, 2));
       console.log('dailyAdvertising:', JSON.stringify(dailyAdvertising, null, 2));
       console.log('finalScore:', gameState.finalScore);
-      console.log('startingMoney:', 20.00);
+      console.log('startingMoney:', 200.00);
 
-      // Convert final score and starting money to cents for circuit
-      const finalScoreInCents = Math.floor((gameState.finalScore || 0) * 100);
-      const startingMoneyInCents = Math.floor(20.00 * 100);
+      // Convert final score and starting money to 10-cent increments for circuit
+      const finalScoreInTens = gameState.finalScore || 0;  // Already in 10-cent units
+      const startingMoneyInTens = 2000;  // Already in 10-cent units ($200.00)
 
       console.log('\n=== GENERATING PROOF ===');
       const proofResult = await verifyGameState(
@@ -351,8 +367,8 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
         dailyPrices,
         dailyWeather,
         dailyAdvertising,
-        finalScoreInCents,
-        startingMoneyInCents
+        finalScoreInTens,
+        startingMoneyInTens
       );
 
       if (!proofResult.isValid) {

@@ -10,6 +10,7 @@ interface GameState {
     lemonade: number;
   };
   weather: string;
+  yesterdayWeather: string;  // Weather from previous day that affects today's performance
   customers: number;
   advertising: {
     type: 'none' | 'flyers' | 'social' | 'radio';
@@ -21,6 +22,7 @@ interface GameState {
     sales: number;
     revenue: number;
     weather: string;
+    yesterdayWeather: string;  // Add to sales history too
     advertisingCost: number;
     iceUsed: number;
     iceMelted: number;
@@ -43,15 +45,15 @@ export class LemonadeStand {
   private state: GameState;
   private readonly WEATHER_TYPES = ['rainy', 'cloudy', 'sunny', 'hot'];
   private readonly PRICES = {
-    lemons: 0.05,
-    sugar: 0.03,
-    ice: 0.02
+    lemons: 5,  // $0.50 in 10-cent units
+    sugar: 3,   // $0.30 in 10-cent units
+    ice: 2      // $0.20 in 10-cent units
   };
   private readonly ADVERTISING_OPTIONS = {
     none: { cost: 0, multiplier: 0.8 },     // 20% penalty for no advertising
-    flyers: { cost: 3, multiplier: 1.2 },    // +20% customers for $3
-    social: { cost: 8, multiplier: 1.8 },    // +80% customers for $8
-    radio: { cost: 15, multiplier: 2.5 }     // +150% customers for $15
+    flyers: { cost: 90, multiplier: 1.2 },   // +20% customers for $9.00 (was $3.00)
+    social: { cost: 240, multiplier: 1.8 },  // +80% customers for $24.00 (was $8.00)
+    radio: { cost: 450, multiplier: 2.5 }    // +150% customers for $45.00 (was $15.00)
   };
   private readonly MAX_DAYS = 7;
   // Fixed recipe values
@@ -64,16 +66,17 @@ export class LemonadeStand {
   constructor() {
     this.state = {
       day: 1,
-      money: 20.00,
+      money: 1200,  // $120.00 in 10-cent units
       inventory: {
         lemons: 0,
         sugar: 0,
         ice: 0
       },
       prices: {
-        lemonade: 1.00
+        lemonade: 30  // $3.00 in 10-cent units
       },
       weather: 'sunny',
+      yesterdayWeather: 'sunny',  // First day starts with sunny weather
       customers: 0,
       advertising: {
         type: 'none',
@@ -87,13 +90,13 @@ export class LemonadeStand {
 
     // Log initial state
     console.log('\n=== INITIAL STATE ===');
-    console.log('Starting Money:', 20.00);
+    console.log('Starting Money:', this.convertToDollars(1200).toFixed(2));
     console.log('Starting Inventory:', {
       lemons: 0,
       sugar: 0,
       ice: 0
     });
-    console.log('Starting Price:', 1.00);
+    console.log('Starting Price:', this.convertToDollars(30).toFixed(2));  // Show in dollars
     console.log('Starting Weather:', 'sunny');
     console.log('Starting Advertising:', 'none');
     console.log('================================\n');
@@ -102,16 +105,17 @@ export class LemonadeStand {
   public resetGame(): void {
     this.state = {
       day: 1,
-      money: 20.00,
+      money: 1200,  // $120.00 in 10-cent units
       inventory: {
         lemons: 0,
         sugar: 0,
         ice: 0
       },
       prices: {
-        lemonade: 1.00
+        lemonade: 30  // $3.00 in 10-cent units
       },
       weather: 'sunny',
+      yesterdayWeather: 'sunny',  // Reset to sunny
       customers: 0,
       advertising: {
         type: 'none',
@@ -125,13 +129,13 @@ export class LemonadeStand {
 
     // Log initial state after reset
     console.log('\n=== INITIAL STATE (AFTER RESET) ===');
-    console.log('Starting Money:', 20.00);
+    console.log('Starting Money:', this.convertToDollars(1200).toFixed(2));
     console.log('Starting Inventory:', {
       lemons: 0,
       sugar: 0,
       ice: 0
     });
-    console.log('Starting Price:', 1.00);
+    console.log('Starting Price:', this.convertToDollars(30).toFixed(2));  // Show in dollars
     console.log('Starting Weather:', 'sunny');
     console.log('Starting Advertising:', 'none');
     console.log('================================\n');
@@ -153,10 +157,13 @@ export class LemonadeStand {
 
   private checkGameOver(): void {
     if (this.state.day > this.MAX_DAYS) {
+      // Calculate final score before setting game over
+      const finalScore = this.calculateFinalScore();
+      
+      // Set game over state after showing day 7's details
       this.state.gameOver = true;
-      // You "win" if you made more than your starting money (2000 cents)
-      this.state.won = this.state.money > 20.00;
-      this.state.finalScore = this.calculateFinalScore();
+      this.state.won = this.state.money > 1200;
+      this.state.finalScore = finalScore;
     }
   }
 
@@ -175,8 +182,29 @@ export class LemonadeStand {
 
   public setLemonadePrice(price: number): boolean {
     if (this.state.gameOver) return false;
-    if (!this.validatePrice(price)) return false;
-    this.state.prices.lemonade = Number(price.toFixed(2));
+    
+    // Convert UI dollar input to 10-cent units
+    const priceIn10CentUnits = Math.round(price * 10);
+    
+    // Validate the price in 10-cent units
+    if (!this.validatePrice(priceIn10CentUnits)) {
+      return false;
+    }
+    
+    // Store in 10-cent units directly
+    this.state.prices.lemonade = priceIn10CentUnits;
+    
+    console.log('Setting price to:', this.convertToDollars(priceIn10CentUnits).toFixed(2), 'dollars =', priceIn10CentUnits, 'in 10-cent units');
+    return true;
+  }
+
+  private validatePrice(priceIn10CentUnits: number): boolean {
+    // Validate price is in valid range (5-60 units)
+    if (priceIn10CentUnits < 5 || priceIn10CentUnits > 60) {
+      console.error('Invalid price: Must be between 5 and 60 ten-cent units ($0.50-$6.00)');
+      return false;
+    }
+    
     return true;
   }
 
@@ -207,6 +235,7 @@ export class LemonadeStand {
     sales: number;
     revenue: number;
     weather: string;
+    yesterdayWeather: string;  // Add to return type
     customersServed: number;
     gameOver: boolean;
     won: boolean;
@@ -216,20 +245,37 @@ export class LemonadeStand {
     iceMelted: number;
     lemonsUsed: number;
     sugarUsed: number;
+    financialDetails: {
+      revenue: number;
+      costs: {
+        total: number;
+        ingredients: {
+          total: number;
+          lemons: number;
+          sugar: number;
+          ice: number;
+        };
+        advertising: number;
+      };
+      profit: number;
+    };
   } {
     console.log('\n🔔🔔🔔 LEMONADE STAND DAY ' + this.state.day + ' STARTING 🔔🔔🔔');
     console.log('Current Inventory:', { ...this.state.inventory });
-    console.log('Current Money:', this.state.money);
-    console.log('Current Price:', this.state.prices.lemonade);
-    console.log('Current Weather:', this.state.weather);
+    console.log('Current Money:', this.convertToDollars(this.state.money).toFixed(2));
+    console.log('Current Price:', '$' + this.convertToDollars(this.state.prices.lemonade).toFixed(2));
+    console.log('Yesterday\'s Weather:', this.state.yesterdayWeather, '(affects today\'s customers)');
+    console.log('Today\'s Weather:', this.state.weather, '(will affect tomorrow\'s customers)');
     console.log('Current Advertising:', this.state.advertising.type);
     console.log('================================\n');
 
+    // Only return early if we're already in game over state
     if (this.state.gameOver) {
       return {
         sales: 0,
         revenue: 0,
         weather: this.state.weather,
+        yesterdayWeather: this.state.yesterdayWeather,
         customersServed: 0,
         gameOver: true,
         won: this.state.won,
@@ -238,7 +284,21 @@ export class LemonadeStand {
         iceUsed: 0,
         iceMelted: 0,
         lemonsUsed: 0,
-        sugarUsed: 0
+        sugarUsed: 0,
+        financialDetails: {
+          revenue: 0,
+          costs: {
+            total: 0,
+            ingredients: {
+              total: 0,
+              lemons: 0,
+              sugar: 0,
+              ice: 0
+            },
+            advertising: 0
+          },
+          profit: 0
+        }
       };
     }
 
@@ -256,22 +316,15 @@ export class LemonadeStand {
     // Deduct advertising cost
     this.state.money -= this.state.advertising.cost;
 
-    // Generate weather for the day
-    if (this.state.day === 1) {
-      this.state.weather = 'sunny';  // First day must be sunny
-    } else {
-      this.state.weather = this.generateWeather();
-    }
-
-    // Calculate number of customers
-    const baseCustomers = this.calculateCustomers(this.state.weather);
+    // Calculate number of customers using yesterday's weather
+    const baseCustomers = this.calculateCustomers(this.state.yesterdayWeather);
     const advertisingMultiplier = this.state.advertising.multiplier;
     const priceMultiplier = this.getPriceMultiplier();
     const totalCustomers = Math.floor(baseCustomers * advertisingMultiplier * priceMultiplier);
 
     console.log('\n=== CUSTOMER CALCULATION ===');
-    console.log('Base Customers:', baseCustomers, `(${this.state.weather} weather)`);
-    console.log('Price:', this.state.prices.lemonade, '-> multiplier:', priceMultiplier);
+    console.log('Base Customers:', baseCustomers, `(${this.state.yesterdayWeather} weather from yesterday)`);
+    console.log('Price:', '$' + this.convertToDollars(this.state.prices.lemonade).toFixed(2), '-> multiplier:', priceMultiplier);
     console.log('Advertising:', this.state.advertising.type, '-> multiplier:', advertisingMultiplier);
     console.log('Total Potential Customers:', totalCustomers);
 
@@ -294,15 +347,37 @@ export class LemonadeStand {
     console.log('Max possible cups:', maxPossibleCups);
     console.log('Actual sales:', actualSales, '(limited by inventory or customers)');
 
-    // Calculate revenue and update money
-    const revenue = actualSales * this.state.prices.lemonade;
-    this.state.money += revenue;
-
     // Calculate ingredients used
     const lemonsUsed = actualSales * lemonsPerCup;
     const sugarUsed = actualSales * sugarPerCup;
     const iceUsed = actualSales * icePerCup;
     
+    // Calculate revenue and costs
+    const revenue = actualSales * this.state.prices.lemonade;  // Both in 10-cent units
+    
+    // Calculate costs for the day
+    const ingredientCosts = {
+      lemons: lemonsUsed * this.PRICES.lemons,
+      sugar: sugarUsed * this.PRICES.sugar,
+      ice: iceUsed * this.PRICES.ice
+    };
+    const totalIngredientCost = ingredientCosts.lemons + ingredientCosts.sugar + ingredientCosts.ice;
+    const totalCosts = totalIngredientCost + this.state.advertising.cost;
+    const profit = revenue - totalCosts;
+
+    this.state.money += revenue;
+
+    console.log('\n=== DAILY FINANCIAL SUMMARY ===');
+    console.log('Revenue:', this.convertToDollars(revenue).toFixed(2), '($' + this.convertToDollars(this.state.prices.lemonade).toFixed(2) + ' × ' + actualSales + ' cups)');
+    console.log('Costs:', this.convertToDollars(totalCosts).toFixed(2));
+    console.log('  - Ingredients:', this.convertToDollars(totalIngredientCost).toFixed(2));
+    console.log('    * Lemons:', this.convertToDollars(ingredientCosts.lemons).toFixed(2), '($' + this.convertToDollars(this.PRICES.lemons).toFixed(2) + ' × ' + lemonsUsed + ' lemons)');
+    console.log('    * Sugar:', this.convertToDollars(ingredientCosts.sugar).toFixed(2), '($' + this.convertToDollars(this.PRICES.sugar).toFixed(2) + ' × ' + sugarUsed + ' sugar)');
+    console.log('    * Ice:', this.convertToDollars(ingredientCosts.ice).toFixed(2), '($' + this.convertToDollars(this.PRICES.ice).toFixed(2) + ' × ' + iceUsed + ' ice)');
+    console.log('  - Advertising:', this.convertToDollars(this.state.advertising.cost).toFixed(2));
+    console.log('Profit:', this.convertToDollars(profit).toFixed(2));
+    console.log('================================\n');
+
     // Update inventory - first use ingredients for drinks
     this.state.inventory.lemons -= lemonsUsed;
     this.state.inventory.sugar -= sugarUsed;
@@ -329,37 +404,16 @@ export class LemonadeStand {
       'radio': 3
     };
 
-    console.log('\n=== PROOF DATA FOR DAY ' + this.state.day + ' ===');
-    console.log('1. Daily State:', [
-      Math.floor(this.state.money * 100),  // Current total money in cents
-      this.state.inventory.lemons,         // Current lemons in inventory
-      this.state.inventory.sugar,          // Current sugar in inventory
-      this.state.inventory.ice             // Current ice in inventory (will be 0 at end of day)
-    ]);
-    console.log('2. Daily Recipe:', [
-      lemonsPerCup,  // lemons per cup
-      sugarPerCup,   // sugar per cup
-      icePerCup      // ice per cup
-    ]);
-    console.log('3. Daily Price:', Math.floor(this.state.prices.lemonade * 100), '(in cents)');
-    console.log('4. Daily Weather:', weatherMap[this.state.weather], `(${this.state.weather})`);
-    console.log('5. Daily Advertising:', advertisingMap[this.state.advertising.type], `(${this.state.advertising.type})`);
-    
-    console.log('\nInventory Details:');
-    console.log('  Lemons:', this.state.inventory.lemons);
-    console.log('  Sugar:', this.state.inventory.sugar);
-    console.log('  Ice:', this.state.inventory.ice, '(all ice melts at end of day)');
-    console.log('  Ice Used In Drinks:', iceUsed);
-    console.log('  Ice Melted At End Of Day:', iceMelted);
-    console.log('  Total Ice Lost:', totalIceUsed);
-    console.log('================================\n');
+    const weatherValue = weatherMap[this.state.weather] ?? 0;
+    const adValue = advertisingMap[this.state.advertising.type] ?? 0;
 
-    // Add to sales history
+    // Add to sales history with both weather values
     this.state.salesHistory.push({
       day: this.state.day,
       sales: actualSales,
       revenue,
       weather: this.state.weather,
+      yesterdayWeather: this.state.yesterdayWeather,
       advertisingCost: this.state.advertising.cost,
       iceUsed,
       iceMelted,
@@ -374,63 +428,157 @@ export class LemonadeStand {
       advertising: this.state.advertising.type
     });
 
-    // Increment day
-    this.state.day++;
-    this.checkGameOver();
+    // Prepare proof data
+    const proofData = {
+      dailyState: [
+        this.state.money,  // Already in 10-cent units
+        lemonsUsed,       // Track used ingredients
+        sugarUsed,        // Track used ingredients
+        iceUsed + iceMelted  // Track total ice used
+      ],
+      dailyRecipe: [
+        lemonsPerCup,
+        sugarPerCup,
+        icePerCup
+      ],
+      dailyPrice: this.state.prices.lemonade,  // Already in 10-cent units
+      dailyWeather: weatherValue,
+      dailyAdvertising: adValue
+    };
 
-    return {
+    console.log('\n=== PROOF DATA FOR DAY ' + this.state.day + ' ===');
+    console.log('1. Daily State:', proofData.dailyState);
+    console.log('2. Daily Recipe:', proofData.dailyRecipe);
+    console.log('3. Daily Price:', proofData.dailyPrice, '(in cents)');
+    console.log('4. Daily Weather:', proofData.dailyWeather, '(' + this.state.weather + ')');
+    console.log('5. Daily Advertising:', proofData.dailyAdvertising, '(' + this.state.advertising.type + ')');
+    
+    console.log('\nInventory Details:');
+    console.log('  Lemons:', this.state.inventory.lemons);
+    console.log('  Sugar:', this.state.inventory.sugar);
+    console.log('  Ice:', this.state.inventory.ice, '(all ice melts at end of day)');
+    console.log('  Ice Used In Drinks:', iceUsed);
+    console.log('  Ice Melted At End Of Day:', iceMelted);
+    console.log('  Total Ice Lost:', totalIceUsed);
+    console.log('================================\n');
+
+    // Before incrementing the day, store today's weather as yesterday's weather
+    this.state.yesterdayWeather = this.state.weather;
+
+    // Generate new weather for tomorrow
+    if (this.state.day === 1) {
+      this.state.weather = 'sunny';  // Second day starts sunny
+    } else {
+      this.state.weather = this.generateWeather();
+    }
+
+    // Increment day before checking game over
+    this.state.day++;
+
+    // Prepare return value before checking game over
+    const result: {
+      sales: number;
+      revenue: number;
+      weather: string;
+      yesterdayWeather: string;
+      customersServed: number;
+      gameOver: boolean;
+      won: boolean;
+      finalScore: number | null;
+      advertisingCost: number;
+      iceUsed: number;
+      iceMelted: number;
+      lemonsUsed: number;
+      sugarUsed: number;
+      financialDetails: {
+        revenue: number;
+        costs: {
+          total: number;
+          ingredients: {
+            total: number;
+            lemons: number;
+            sugar: number;
+            ice: number;
+          };
+          advertising: number;
+        };
+        profit: number;
+      };
+    } = {
       sales: actualSales,
       revenue,
       weather: this.state.weather,
+      yesterdayWeather: this.state.yesterdayWeather,
       customersServed: totalCustomers,
-      gameOver: this.state.gameOver,
-      won: this.state.won,
-      finalScore: this.state.finalScore,
+      gameOver: false,
+      won: false,
+      finalScore: null,
       advertisingCost: this.state.advertising.cost,
       iceUsed,
       iceMelted,
       lemonsUsed,
-      sugarUsed
+      sugarUsed,
+      financialDetails: {
+        revenue,
+        costs: {
+          total: totalCosts,
+          ingredients: {
+            total: totalIngredientCost,
+            lemons: ingredientCosts.lemons,
+            sugar: ingredientCosts.sugar,
+            ice: ingredientCosts.ice
+          },
+          advertising: this.state.advertising.cost
+        },
+        profit
+      }
     };
+
+    // Now check game over - this will update the state if it's the end
+    this.checkGameOver();
+
+    // Update the result with final game state if game is over
+    if (this.state.gameOver) {
+      result.gameOver = true;
+      result.won = this.state.won;
+      result.finalScore = this.state.finalScore;
+    }
+
+    return result;
   }
 
   private calculateCustomers(weather: string): number {
-    // Base customers now vary more by weather
+    // Base customers vary by weather
     let baseCustomers: number;
     switch(weather) {
       case 'hot':
-        baseCustomers = Math.floor(Math.random() * 20) + 30;    // 30-50
+        baseCustomers = Math.floor(Math.random() * 20) + 80;    // 80-100 customers on hot days
         break;
       case 'sunny':
-        baseCustomers = Math.floor(Math.random() * 20) + 20;    // 20-40
+        baseCustomers = Math.floor(Math.random() * 20) + 60;    // 60-80 customers on sunny days
         break;
       case 'cloudy':
-        baseCustomers = Math.floor(Math.random() * 20) + 10;    // 10-30
+        baseCustomers = Math.floor(Math.random() * 20) + 40;    // 40-60 customers on cloudy days
         break;
       case 'rainy':
-        baseCustomers = Math.floor(Math.random() * 10) + 5;     // 5-15
+        baseCustomers = Math.floor(Math.random() * 20) + 20;    // 20-40 customers on rainy days
         break;
       default:
-        baseCustomers = Math.floor(Math.random() * 20) + 10;    // fallback 10-30
+        baseCustomers = Math.floor(Math.random() * 20) + 40;    // fallback 40-60 customers
     }
     
-    const priceMultiplier = this.getPriceMultiplier();
-    const advertisingMultiplier = this.state.advertising.multiplier;
-    
-    // Apply both price and advertising multipliers
-    return Math.floor(baseCustomers * priceMultiplier * advertisingMultiplier);
+    return baseCustomers; // Return base customers - multipliers are applied in simulateDay
   }
 
   private getPriceMultiplier(): number {
-    // More dynamic price sensitivity
+    // Price is already in 10-cent units (5-60 units)
     const price = this.state.prices.lemonade;
-    if (price <= 0.25) return 3.0;           // Triple customers at very low prices
-    if (price <= 0.50) return 2.0;           // Double customers at low prices
-    if (price <= 0.75) return 1.5;           // 50% more customers at moderate prices
-    if (price <= 1.00) return 1.0;           // Base rate at standard price
-    if (price <= 1.25) return 0.75;          // 25% fewer customers
-    if (price <= 1.50) return 0.5;           // Half customers
-    return 0.25;                             // Very few customers at high prices
+    if (price <= 15) return 3.0;           // 5-15 units ($0.50-$1.50): highest demand
+    if (price <= 24) return 2.0;           // 16-24 units ($1.60-$2.40): high demand
+    if (price >= 25 && price <= 34) return 1.0;  // 25-34 units ($2.50-$3.40): normal demand
+    if (price <= 44) return 0.8;           // 35-44 units ($3.50-$4.40): low demand
+    if (price <= 54) return 0.6;           // 45-54 units ($4.50-$5.40): very low demand
+    return 0.4;                            // 55-60 units ($5.50-$6.00): lowest demand
   }
 
   public getGameSummary(): {
@@ -456,16 +604,6 @@ export class LemonadeStand {
     };
   }
 
-  private validatePrice(price: number): boolean {
-    // Convert to cents for validation
-    const priceInCents = Math.floor(price * 100);
-    if (priceInCents <= 0) {
-      console.error('Invalid price: Must be greater than 0');
-      return false;
-    }
-    return true;
-  }
-
   private getWeatherValue(weather: string): number {
     // Circuit expects: 0=rainy, 1=cloudy, 2=sunny, 3=hot
     const weatherMap: { [key: string]: number } = {
@@ -486,5 +624,19 @@ export class LemonadeStand {
       'radio': 3
     };
     return adMap[type] ?? 0;
+  }
+
+  // Helper method to convert 10-cent units to dollars for display
+  private convertToDollars(amount: number): number {
+    return amount / 10;
+  }
+
+  // Helper method to get display prices
+  public getDisplayPrices(): { lemons: number; sugar: number; ice: number } {
+    return {
+      lemons: this.convertToDollars(this.PRICES.lemons),
+      sugar: this.convertToDollars(this.PRICES.sugar),
+      ice: this.convertToDollars(this.PRICES.ice)
+    };
   }
 } 
