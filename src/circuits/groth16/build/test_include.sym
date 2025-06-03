@@ -1,0 +1,8 @@
+1,1,2,main.y
+2,2,2,main.x
+3,-1,1,main.comp.out
+4,-1,1,main.comp.in[0]
+5,-1,1,main.comp.in[1]
+6,-1,0,main.comp.isz.out
+7,3,0,main.comp.isz.in
+8,4,0,main.comp.isz.inv
