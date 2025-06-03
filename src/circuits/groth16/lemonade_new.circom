@@ -243,7 +243,7 @@ template DailySales() {
     // Validate inputs
     component weatherValid = LessThan(8);
     component adValid = LessThan(8);
-    component priceValid = GreaterThan(8);
+    component priceValid = GreaterThan(16);
     
     weatherValid.in[0] <== weather;
     weatherValid.in[1] <== 4; // 4 weather types (0-3)
@@ -347,12 +347,12 @@ template PriceMultiplier() {
     signal output multiplier;
     
     // Compare price against thresholds
-    component lt25 = LessThan(8);
-    component lt50 = LessThan(8);
-    component lt75 = LessThan(8);
-    component lt100 = LessThan(8);
-    component lt125 = LessThan(8);
-    component lt150 = LessThan(8);
+    component lt25 = LessThan(16);
+    component lt50 = LessThan(16);
+    component lt75 = LessThan(16);
+    component lt100 = LessThan(16);
+    component lt125 = LessThan(16);
+    component lt150 = LessThan(16);
     
     lt25.in[0] <== price;
     lt25.in[1] <== 25; // $0.25
@@ -499,7 +499,7 @@ template StateTransitionValidator() {
     iceCheck.in[1] <== 0; // Ice melts at end of day
     
     // Additional validation for non-negative values
-    component moneyValid = GreaterEqThan(8);
+    component moneyValid = GreaterEqThan(16);
     component lemonsValid = GreaterEqThan(8);
     component sugarValid = GreaterEqThan(8);
     

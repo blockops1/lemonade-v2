@@ -148,11 +148,11 @@ export const GameStatus: React.FC<GameStatusProps> = ({
       {lastResult?.gameOver && (
         <div className={`${styles.gameOver} ${lastResult.won ? styles.won : styles.lost}`}>
           <h2>Game Complete!</h2>
-          <p>Final Money: ${(lastResult.finalScore! / 100).toFixed(2)}</p>
+          <p>Final Money: ${lastResult.finalScore!.toFixed(2)}</p>
           {lastResult.won ? (
-            <p>You made a profit of ${((lastResult.finalScore! / 100) - 20).toFixed(2)}!</p>
+            <p>You made a profit of ${(lastResult.finalScore! - 20).toFixed(2)}!</p>
           ) : (
-            <p>You lost ${(20 - (lastResult.finalScore! / 100)).toFixed(2)} of your initial investment.</p>
+            <p>You lost ${(20 - lastResult.finalScore!).toFixed(2)} of your initial investment.</p>
           )}
           <div className={styles.gameOverActions}>
             <button 

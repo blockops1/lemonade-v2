@@ -136,60 +136,61 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       const dailyStates: DailyState[] = [];
 
       // Calculate states iteratively instead of using map
+      let prevMoney = 2000; // Starting money in cents (20.00)
+      let prevLemons = 0;
+      let prevSugar = 0;
+      let prevIce = 0;
+      
       for (let index = 0; index < sortedHistory.length; index++) {
         const day = sortedHistory[index];
         
-        // Calculate cumulative state up to this day
-        let cumulativeMoney: number = index === 0 ? 20 : dailyStates[index - 1][0]; // Start with previous day's money in dollars
-        let cumulativeLemons: number = index === 0 ? 0 : dailyStates[index - 1][1];   // Start with previous day's lemons
-        let cumulativeSugar: number = index === 0 ? 0 : dailyStates[index - 1][2];    // Start with previous day's sugar
-        let cumulativeIce: number = index === 0 ? 0 : dailyStates[index - 1][3];      // Start with previous day's ice
+        // Calculate revenue and costs in cents
+        const revenueInCents = Math.floor(day.revenue * 100);
+        const adCostInCents = day.advertisingCost * 100;
+        const ingredientCostInCents = 
+          (day.lemonsUsed * 5) +  // 5 cents per lemon
+          (day.sugarUsed * 3) +   // 3 cents per sugar
+          ((day.iceUsed + day.iceMelted) * 2);  // 2 cents per ice
 
-        // Add revenue in dollars
-        cumulativeMoney += day.revenue;
-          
-        // Subtract advertising cost in dollars
-        cumulativeMoney -= day.advertisingCost;
+        // Calculate current money according to circuit validation
+        const currMoney = prevMoney + revenueInCents - (ingredientCostInCents + adCostInCents);
 
-        // Calculate ingredient purchases by looking at what was used
-        // Since we can't sell what we don't have, whatever was used must have been purchased
-        const lemonsPurchased = day.lemonsUsed;
-        const sugarPurchased = day.sugarUsed;
-        const icePurchased = day.iceUsed + day.iceMelted;
-          
-        // Subtract ingredient costs (in dollars)
-        const lemonCost = lemonsPurchased * 0.05; // 5 cents per lemon
-        const sugarCost = sugarPurchased * 0.03; // 3 cents per sugar
-        const iceCost = icePurchased * 0.02; // 2 cents per ice
-        cumulativeMoney -= (lemonCost + sugarCost + iceCost);
+        // Calculate current inventory according to circuit validation
+        const currLemons = day.lemonsUsed;  // What was used this day
+        const currSugar = day.sugarUsed;    // What was used this day
+        const currIce = 0;                  // Ice always melts
 
-        // Update inventory - first add purchases, then subtract usage
-        cumulativeLemons = lemonsPurchased;  // Only track what was purchased this day
-        cumulativeSugar = sugarPurchased;    // Only track what was purchased this day
-        cumulativeIce = 0;  // Ice always melts at end of day
+        // Verify money is within circuit bounds
+        if (currMoney > 65535 || currMoney < 0) {
+          throw new Error(`Money value ${currMoney} exceeds circuit's 16-bit limit on day ${day.day}`);
+        }
+
+        dailyStates.push([
+          currMoney,
+          currLemons,
+          currSugar,
+          currIce
+        ]);
 
         console.log(`\nProcessing state for Day ${day.day}:`, {
-          cumulativeMoney,
-          cumulativeLemons,
-          cumulativeSugar,
-          cumulativeIce,
-          lemonsPurchased,
-          sugarPurchased,
-          icePurchased,
-          revenue: day.revenue,
+          revenueInCents,
+          adCostInCents,
+          ingredientCostInCents,
+          prevMoney,
+          currMoney,
           lemonsUsed: day.lemonsUsed,
           sugarUsed: day.sugarUsed,
           iceUsed: day.iceUsed,
           iceMelted: day.iceMelted,
-          totalIceUsed: day.iceUsed + day.iceMelted
+          revenue: day.revenue,
+          advertisingCost: day.advertisingCost
         });
 
-        dailyStates.push([
-          Math.floor(cumulativeMoney), // Money in dollars
-          cumulativeLemons,
-          cumulativeSugar,
-          cumulativeIce
-        ]);
+        // Update previous state for next iteration
+        prevMoney = currMoney;
+        prevLemons = currLemons;
+        prevSugar = currSugar;
+        prevIce = currIce;
       }
 
       console.log('\nDaily States:', JSON.stringify(dailyStates, null, 2));
@@ -266,13 +267,13 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
             adValue = 0;  // none
             break;
           case 3:
-            adValue = 1;  // flyers
-            break;
-          case 5:
-            adValue = 2;  // social
+            adValue = 1;  // flyers ($3)
             break;
           case 8:
-            adValue = 3;  // radio
+            adValue = 2;  // social ($8)
+            break;
+          case 15:
+            adValue = 3;  // radio ($15)
             break;
           default:
             throw new Error(`Invalid advertising cost on day ${day.day}: ${day.advertisingCost}`);
@@ -327,13 +328,16 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       console.log('dailyPrices:', JSON.stringify(dailyPrices, null, 2));
       console.log('dailyWeather:', JSON.stringify(dailyWeather, null, 2));
       console.log('dailyAdvertising:', JSON.stringify(dailyAdvertising, null, 2));
-      console.log('finalScore:', gameState.finalScore || 0);
+      console.log('finalScore:', gameState.finalScore);
       console.log('startingMoney:', 20.00);
 
-      // Generate and verify the proof
+      // Convert final score and starting money to cents for circuit
+      const finalScoreInCents = Math.floor((gameState.finalScore || 0) * 100);
+      const startingMoneyInCents = Math.floor(20.00 * 100);
+
       console.log('\n=== GENERATING PROOF ===');
       const proofResult = await verifyGameState(
-        dailyStates.map((state: DailyState) => ({
+        dailyStates.map(state => ({
           money: state[0],
           lemons: state[1],
           sugar: state[2],
@@ -347,8 +351,8 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
         dailyPrices,
         dailyWeather,
         dailyAdvertising,
-        Math.floor(gameState.finalScore! * 100), // Convert to cents
-        2000 // Starting money in cents
+        finalScoreInCents,
+        startingMoneyInCents
       );
 
       if (!proofResult.isValid) {

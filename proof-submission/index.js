@@ -8,7 +8,7 @@ async function main() {
     const key = JSON.parse(fs.readFileSync("./data/lemonade_new_verification_key.json", 'utf8'));
 
     // Start a session with Volta testnet
-    const session = await zkVerifySession.start().Volta().withAccount("this is where the wallet phrase goes");
+    const session = await zkVerifySession.start().Volta().withAccount("shift dumb script potato proud surround decade twist purse guitar fence fever");
 
     // Register verification key
     const {events} = await session.registerVerificationKey()
