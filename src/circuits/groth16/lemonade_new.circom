@@ -29,6 +29,15 @@ template LemonadeGame(maxDays) {
     signal input startingMoney;
     signal input gameStateHash;
     
+    // Validate public inputs are within 18 bits
+    component finalScoreValid = Num2Bits(18);
+    component daysPlayedValid = Num2Bits(8);
+    component startingMoneyValid = Num2Bits(18);
+    
+    finalScoreValid.in <== finalScore;
+    daysPlayedValid.in <== daysPlayed;
+    startingMoneyValid.in <== startingMoney;
+    
     // Private inputs (arrays of length maxDays)
     signal input dailyStates[maxDays][4]; // [money, lemons, sugar, ice]
     signal input dailyRecipes[maxDays][3]; // [lemonsPerCup, sugarPerCup, icePerCup]
@@ -60,6 +69,16 @@ template LemonadeGame(maxDays) {
     component salesCalc[maxDays];
     component daysInRange = LessThan(8);
     component dayComps[maxDays];
+    component stateMoneyValid[maxDays];
+    component stateLemonsValid[maxDays];
+    component stateSugarValid[maxDays];
+    component stateIceValid[maxDays];
+    component hashInput0Valid[maxDays];
+    component hashInput1Valid[maxDays];
+    component maskedScoreValid[maxDays];
+    component dailyRevenueValid[maxDays];
+    component salesCountValid[maxDays];
+    component dailyPriceValid[maxDays];
     
     // Validate daysPlayed is in range
     daysInRange.in[0] <== daysPlayed;
@@ -72,6 +91,16 @@ template LemonadeGame(maxDays) {
         salesCalc[i] = DailySales();
         dayComps[i] = LessThan(8);
         stateHashers[i] = Poseidon(2);
+        stateMoneyValid[i] = Num2Bits(18);
+        stateLemonsValid[i] = Num2Bits(18);
+        stateSugarValid[i] = Num2Bits(18);
+        stateIceValid[i] = Num2Bits(18);
+        hashInput0Valid[i] = Num2Bits(18);
+        hashInput1Valid[i] = Num2Bits(18);
+        maskedScoreValid[i] = Num2Bits(18);
+        dailyRevenueValid[i] = Num2Bits(18);
+        salesCountValid[i] = Num2Bits(18);
+        dailyPriceValid[i] = Num2Bits(18);
     }
     
     // Create day masks and verify each day's state
@@ -82,8 +111,18 @@ template LemonadeGame(maxDays) {
         dayComps[i].in[1] <== daysPlayed;
         dayMask[i] <== dayComps[i].out;
         
+        // Validate daily state values are within 18 bits
+        stateMoneyValid[i].in <== dailyStates[i][0];
+        stateLemonsValid[i].in <== dailyStates[i][1];
+        stateSugarValid[i].in <== dailyStates[i][2];
+        stateIceValid[i].in <== dailyStates[i][3];
+        
+        // Validate daily price is within 18 bits
+        dailyPriceValid[i].in <== dailyPrices[i];
+        
         // Calculate masked score for this day
         maskedScores[i] <== dailyStates[i][0] * dayMask[i];
+        maskedScoreValid[i].in <== maskedScores[i];
         totalScore += maskedScores[i];
         
         // Validate recipe
@@ -98,7 +137,10 @@ template LemonadeGame(maxDays) {
         salesCalc[i].price <== dailyPrices[i];
         salesErrors[i] <== 1 - salesCalc[i].isValid;
         
+        // Validate sales count and revenue
+        salesCountValid[i].in <== salesCalc[i].sales;
         dailyRevenue[i] <== salesCalc[i].sales * dailyPrices[i];
+        dailyRevenueValid[i].in <== dailyRevenue[i];
         
         // Initialize all state validator inputs
         stateValidators[i].prevMoney <== i == 0 ? startingMoney : dailyStates[i-1][0];
@@ -122,11 +164,20 @@ template LemonadeGame(maxDays) {
         // Hash the daily state in pairs
         stateHashers[i].inputs[0] <== dailyStates[i][0] + dailyStates[i][1];
         stateHashers[i].inputs[1] <== dailyStates[i][2] + dailyStates[i][3];
+        
+        // Validate hash inputs are within 18 bits
+        hashInput0Valid[i].in <== dailyStates[i][0] + dailyStates[i][1];
+        hashInput1Valid[i].in <== dailyStates[i][2] + dailyStates[i][3];
+        
         intermediateHashes[i] <== stateHashers[i].out;
     }
     
     // Assign the total score to runningScore signal
     runningScore <== totalScore;
+    
+    // Validate total score is within 18 bits
+    component totalScoreValid = Num2Bits(18);
+    totalScoreValid.in <== totalScore;
     
     // Final hash combining all intermediate hashes
     finalHasher.inputs[0] <== intermediateHashes[0];
@@ -142,6 +193,11 @@ template LemonadeGame(maxDays) {
     component scoreCheck = IsEqual();
     signal finalScoreTimesDays;
     finalScoreTimesDays <== finalScore * daysPlayed;
+    
+    // Validate final score times days is within 18 bits
+    component finalScoreTimesDaysValid = Num2Bits(18);
+    finalScoreTimesDaysValid.in <== finalScoreTimesDays;
+    
     scoreCheck.in[0] <== finalScoreTimesDays;
     scoreCheck.in[1] <== runningScore;
     signal scoreValid;
@@ -243,7 +299,7 @@ template DailySales() {
     // Validate inputs
     component weatherValid = LessThan(8);
     component adValid = LessThan(8);
-    component priceValid = GreaterThan(16);
+    component priceValid = GreaterThan(18);
     
     weatherValid.in[0] <== weather;
     weatherValid.in[1] <== 4; // 4 weather types (0-3)
@@ -347,12 +403,12 @@ template PriceMultiplier() {
     signal output multiplier;
     
     // Compare price against thresholds
-    component lt25 = LessThan(16);
-    component lt50 = LessThan(16);
-    component lt75 = LessThan(16);
-    component lt100 = LessThan(16);
-    component lt125 = LessThan(16);
-    component lt150 = LessThan(16);
+    component lt25 = LessThan(18);
+    component lt50 = LessThan(18);
+    component lt75 = LessThan(18);
+    component lt100 = LessThan(18);
+    component lt125 = LessThan(18);
+    component lt150 = LessThan(18);
     
     lt25.in[0] <== price;
     lt25.in[1] <== 25; // $0.25
@@ -457,6 +513,10 @@ template StateTransitionValidator() {
     
     adCost <== isFlyers * 300 + isSocial * 800 + isRadio * 1500;
     
+    // Validate adCost is within 18 bits
+    component adCostValid = Num2Bits(18);
+    adCostValid.in <== adCost;
+    
     // Check if there were any sales
     component hasSales = GreaterThan(8);
     hasSales.in[0] <== salesCount;
@@ -472,7 +532,20 @@ template StateTransitionValidator() {
     sugarCost <== salesCount * recipeSugar * 3;
     iceCost <== salesCount * recipeIce * 2;
     
+    // Validate individual costs are within 18 bits
+    component lemonsCostValid = Num2Bits(18);
+    component sugarCostValid = Num2Bits(18);
+    component iceCostValid = Num2Bits(18);
+    
+    lemonsCostValid.in <== lemonsCost;
+    sugarCostValid.in <== sugarCost;
+    iceCostValid.in <== iceCost;
+    
     ingredientCost <== lemonsCost + sugarCost + iceCost;
+    
+    // Validate ingredientCost is within 18 bits
+    component ingredientCostValid = Num2Bits(18);
+    ingredientCostValid.in <== ingredientCost;
     
     // Calculate final cost (only apply ad cost if there were sales)
     signal finalCost;
@@ -480,14 +553,38 @@ template StateTransitionValidator() {
     adCostWithSales <== adCost * hasSales.out;
     finalCost <== ingredientCost + adCostWithSales;
     
+    // Validate finalCost is within 18 bits
+    component finalCostValid = Num2Bits(18);
+    finalCostValid.in <== finalCost;
+    
+    // Validate revenue is within 18 bits
+    component revenueValid = Num2Bits(18);
+    revenueValid.in <== revenue;
+    
     // Verify money changes
     component moneyCheck = IsEqual();
     component lemonsCheck = IsEqual();
     component sugarCheck = IsEqual();
     component iceCheck = IsEqual();
     
+    // Calculate money changes in steps to avoid intermediate values exceeding 18 bits
+    signal moneyAfterCosts;
+    moneyAfterCosts <== prevMoney - finalCost;
+    
+    // Validate moneyAfterCosts is within 18 bits
+    component moneyAfterCostsValid = Num2Bits(18);
+    moneyAfterCostsValid.in <== moneyAfterCosts;
+    
+    // Calculate final money
+    signal finalMoney;
+    finalMoney <== moneyAfterCosts + revenue;
+    
+    // Validate finalMoney is within 18 bits
+    component finalMoneyValid = Num2Bits(18);
+    finalMoneyValid.in <== finalMoney;
+    
     moneyCheck.in[0] <== currMoney;
-    moneyCheck.in[1] <== prevMoney + revenue - finalCost;
+    moneyCheck.in[1] <== finalMoney;
     
     lemonsCheck.in[0] <== currLemons;
     lemonsCheck.in[1] <== prevLemons - (salesCount * recipeLemons);
@@ -498,8 +595,17 @@ template StateTransitionValidator() {
     iceCheck.in[0] <== currIce;
     iceCheck.in[1] <== 0; // Ice melts at end of day
     
+    // Range checks for money values
+    component moneyRangeCheck = Num2Bits(18); // Changed from 16 to 18 bits
+    moneyRangeCheck.in <== currMoney;
+
+    // Money comparisons
+    component moneyComp = GreaterThan(18); // Changed from 16 to 18 bits
+    moneyComp.in[0] <== currMoney;
+    moneyComp.in[1] <== prevMoney;
+
     // Additional validation for non-negative values
-    component moneyValid = GreaterEqThan(16);
+    component moneyValid = GreaterEqThan(18); // Already updated
     component lemonsValid = GreaterEqThan(8);
     component sugarValid = GreaterEqThan(8);
     

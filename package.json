@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "author": "Horizen Labs <info@horizenlabs.io>",
   "license": "ISC",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -29,6 +30,7 @@
     "@types/snarkjs": "^0.7.9",
     "eslint": "8",
     "eslint-config-next": "14.2.15",
+    "ts-node": "^10.9.2",
     "typescript": "5"
   },
   "engines": {

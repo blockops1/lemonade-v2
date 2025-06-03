@@ -1,9 +1,10 @@
 const snarkjs = require("snarkjs");
+const fs = require("fs");
+const path = require("path");
 
 async function generateProof(input) {
-    // In browser environment, we'll fetch these files directly from the public directory
-    const wasmPath = "/circuits/lemonade_new_js/lemonade_new.wasm";
-    const zkeyPath = "/circuits/lemonade_new_final.zkey";
+    const wasmPath = path.join(__dirname, "lemonade_new_js/lemonade_new.wasm");
+    const zkeyPath = path.join(__dirname, "lemonade_new_final.zkey");
     
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(
         input,
@@ -14,8 +15,9 @@ async function generateProof(input) {
 }
 
 async function verifyProof(proof, publicSignals) {
-    const vKey = await import("./lemonade_new_verification_key.json");
-    return await snarkjs.groth16.verify(vKey.default, publicSignals, proof);
+    const vKeyPath = path.join(__dirname, "verification_key.json");
+    const vKey = JSON.parse(fs.readFileSync(vKeyPath));
+    return await snarkjs.groth16.verify(vKey, publicSignals, proof);
 }
 
 module.exports = {
