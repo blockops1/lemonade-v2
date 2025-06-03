@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:proof": "ts-node src/scripts/test_proof.ts"
   },
   "dependencies": {
     "@talismn/connect-components": "1.1.9",

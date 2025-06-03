@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './GameStatus.module.css';
 
 interface GameStatusProps {
@@ -11,6 +11,10 @@ interface GameStatusProps {
   };
   weather: string;
   onReset: () => void;
+  onGenerateProof: () => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
   lastResult?: {
     sales: number;
     revenue: number;
@@ -33,8 +37,27 @@ export const GameStatus: React.FC<GameStatusProps> = ({
   inventory,
   weather,
   lastResult,
-  onReset
+  onReset,
+  onGenerateProof
 }) => {
+  const [isGeneratingProof, setIsGeneratingProof] = useState(false);
+  const [proofError, setProofError] = useState<string | null>(null);
+
+  const handleGenerateProof = async () => {
+    setIsGeneratingProof(true);
+    setProofError(null);
+    try {
+      const result = await onGenerateProof();
+      if (!result.success) {
+        setProofError(result.error || 'Failed to generate proof');
+      }
+    } catch (error) {
+      setProofError(error instanceof Error ? error.message : 'Failed to generate proof');
+    } finally {
+      setIsGeneratingProof(false);
+    }
+  };
+
   return (
     <div className={styles.status}>
       <div className={styles.header}>
@@ -125,18 +148,35 @@ export const GameStatus: React.FC<GameStatusProps> = ({
       {lastResult?.gameOver && (
         <div className={`${styles.gameOver} ${lastResult.won ? styles.won : styles.lost}`}>
           <h2>Game Complete!</h2>
-          <p>Final Money: ${lastResult.finalScore?.toFixed(2)}</p>
+          <p>Final Money: ${(lastResult.finalScore! / 100).toFixed(2)}</p>
           {lastResult.won ? (
-            <p>You made a profit of ${(money - 20).toFixed(2)}!</p>
+            <p>You made a profit of ${((lastResult.finalScore! / 100) - 20).toFixed(2)}!</p>
           ) : (
-            <p>You lost ${(20 - money).toFixed(2)} of your initial investment.</p>
+            <p>You lost ${(20 - (lastResult.finalScore! / 100)).toFixed(2)} of your initial investment.</p>
           )}
-          <button 
-            onClick={onReset}
-            className={styles.playAgainButton}
-          >
-            Play Again
-          </button>
+          <div className={styles.gameOverActions}>
+            <button 
+              onClick={handleGenerateProof}
+              disabled={isGeneratingProof}
+              className={styles.generateProofButton}
+            >
+              {isGeneratingProof ? 'Generating Proof...' : 'Generate Proof'}
+            </button>
+            <button 
+              onClick={onReset}
+              className={styles.playAgainButton}
+            >
+              Play Again
+            </button>
+          </div>
+          {proofError && (
+            <div className={styles.proofError}>
+              {proofError.includes('Assert Failed') ? 
+                'Unable to verify game state. Please try again.' :
+                proofError
+              }
+            </div>
+          )}
         </div>
       )}
     </div>

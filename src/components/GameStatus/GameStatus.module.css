@@ -136,4 +136,40 @@
   background: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
+}
+
+.gameOverActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.generateProofButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.generateProofButton:hover {
+  background-color: #45a049;
+}
+
+.generateProofButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.proofError {
+  margin-top: 1rem;
+  padding: 10px;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  text-align: center;
 } 

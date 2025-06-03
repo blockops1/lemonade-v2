@@ -37,6 +37,16 @@ export default function Home() {
     setLastResult(null);
   };
 
+  const handleGenerateProof = async () => {
+    if (!selectedAccount || !selectedWallet) {
+      return {
+        success: false,
+        error: 'Please connect your wallet first'
+      };
+    }
+    return gameActions.generateAndVerifyProof();
+  };
+
   return (
     <div className={styles.page}>
       <div className={styles.main}>
@@ -64,6 +74,7 @@ export default function Home() {
             weather={gameState.weather}
             lastResult={lastResult || undefined}
             onReset={handleReset}
+            onGenerateProof={handleGenerateProof}
           />
 
           <GameControls
