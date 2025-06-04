@@ -30,6 +30,15 @@ const WalletInstructions: React.FC = () => {
           </ul>
           <p><strong>Goal:</strong> Make the most profit possible in 7 days!</p>
           <p className={styles.tip}>💡 Tip: Watch the weather forecast - it affects your sales!</p>
+          <p className={styles.github}>
+            <a 
+              href="https://github.com/blockops1/lemonade-v2" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              View source code on GitHub
+            </a>
+          </p>
         </div>
       </div>
     </div>
