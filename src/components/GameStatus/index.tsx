@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from './GameStatus.module.css';
 import { useGameProof } from '../../hooks/useGameProof';
+import { useProofUrl } from '@/hooks/useProofUrl';
 
 interface GameStatusProps {
   day: number;
@@ -74,6 +75,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
 }) => {
   const { generateAndVerifyProof, isGenerating, error, status, eventData } = useGameProof();
   const [proofError, setProofError] = useState<string | null>(null);
+  const proofUrl = useProofUrl();
 
   const handleGenerateProof = async () => {
     if (!lastResult?.gameOver || !lastResult.finalScore) {
@@ -222,7 +224,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             
             <div className={styles.proofLinks}>
               <a
-                href="https://zkverify-testnet.subscan.io/"
+                href={proofUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.zkverifyLink}
@@ -243,6 +245,19 @@ export const GameStatus: React.FC<GameStatusProps> = ({
                   </button>
                 </a>
               )}
+            </div>
+            <div className={styles.infoArea}>
+              <a
+                href={proofUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.proofUrlButton}
+              >
+                <div className={styles.proofUrlContent}>
+                  <span className={styles.proofUrlLabel}>Latest Proof:</span>
+                  <span className={styles.proofUrlValue}>{proofUrl}</span>
+                </div>
+              </a>
             </div>
           </div>
         </div>

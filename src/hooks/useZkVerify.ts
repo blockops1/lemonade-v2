@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAccount } from '@/context/AccountContext';
 import { zkVerifySession, Library, CurveType, ZkVerifyEvents } from "zkverifyjs";
+import { setGlobalProofUrl } from '@/utils/globalState';
 
 interface EventData {
     blockHash?: string;
@@ -92,7 +93,10 @@ export function useZkVerify() {
             // Listen for verification events
             verifyEvents.on(ZkVerifyEvents.IncludedInBlock, (data) => {
                 console.log('Proof included in block:', data);
-                console.log('View proof on zkVerify:', `https://zkverify-testnet.subscan.io/extrinsic/${data.txHash}`);
+                const proofUrl = `https://zkverify-testnet.subscan.io/extrinsic/${data.txHash}`;
+                console.log('View proof on zkVerify:', proofUrl);
+                // Update global URL
+                setGlobalProofUrl(proofUrl);
                 setStatus('Proof included in block');
                 setEventData({
                     blockHash: data.blockHash,

@@ -260,4 +260,53 @@
   color: #c62828;
   border-radius: 4px;
   text-align: center;
+}
+
+.infoArea {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  min-height: 60px;
+  width: 100%;
+}
+
+.proofUrlButton {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.proofUrlButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.proofUrlContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.proofUrlLabel {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.proofUrlValue {
+  font-size: 0.85rem;
+  color: #495057;
+  word-break: break-all;
+  font-family: monospace;
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
 } 
