@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import styles from './ProofDecoder.module.css';
 import { decodeProof, decodeManualProof } from '@/utils/proofDecoder';
@@ -12,7 +12,7 @@ interface DecodedProof {
   verificationStatus: boolean;
 }
 
-export default function ProofDecoder() {
+function ProofDecoderContent() {
   const searchParams = useSearchParams();
   const [decodedProof, setDecodedProof] = useState<DecodedProof | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,12 +92,33 @@ export default function ProofDecoder() {
           </div>
 
           <div className={styles.manualInputSection}>
-            <h2>Manual Proof Decoder</h2>
-            <p>Paste the proof data from the block explorer below:</p>
+            <h2>Verify Your Game Proof</h2>
+            <div className={styles.instructions}>
+              <ol className={styles.steps}>
+                <li>
+                  <strong>Step 1:</strong> Click the "View on Block Explorer" link above to open your proof in the block explorer
+                </li>
+                <li>
+                  <strong>Step 2:</strong> In the block explorer, locate the "zk proof verification data" section
+                </li>
+                <li>
+                  <strong>Step 3:</strong> Copy the entire proof data (it should be a long string of characters)
+                </li>
+                <li>
+                  <strong>Step 4:</strong> Paste the proof data into the field below
+                </li>
+                <li>
+                  <strong>Step 5:</strong> Click "Decode Proof" to verify your game results
+                </li>
+              </ol>
+              <p className={styles.note}>
+                Note: The verification will confirm your starting money, final money, and days played. Make sure the proof data is complete and properly formatted.
+              </p>
+            </div>
             <textarea
               value={manualInput}
               onChange={(e) => setManualInput(e.target.value)}
-              placeholder="Paste proof data here..."
+              placeholder="Paste your zk proof verification data here..."
               className={styles.manualInput}
               rows={10}
             />
@@ -140,5 +161,13 @@ export default function ProofDecoder() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProofDecoder() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProofDecoderContent />
+    </Suspense>
   );
 } 

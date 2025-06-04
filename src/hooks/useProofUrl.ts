@@ -5,7 +5,8 @@ export const useProofUrl = () => {
     const [url, setUrl] = useState(getGlobalProofUrl());
 
     useEffect(() => {
-        console.log('[useProofUrl] Hook mounted, initial URL:', url);
+        const initialUrl = getGlobalProofUrl();
+        console.log('[useProofUrl] Hook mounted, initial URL:', initialUrl);
         
         // Subscribe to URL changes
         const unsubscribe = subscribeToUrlChanges(() => {
@@ -19,7 +20,7 @@ export const useProofUrl = () => {
             console.log('[useProofUrl] Hook unmounting, cleaning up subscription');
             unsubscribe();
         };
-    }, []);
+    }, []); // Empty dependency array since we don't need any dependencies
 
     return url;
 }; 

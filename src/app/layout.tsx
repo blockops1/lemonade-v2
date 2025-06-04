@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Analytics } from '@vercel/analytics/react';
 import { AccountProvider } from "@/context/AccountContext";
-import WalletInstructions from "@/components/WalletInstructions";
 import "./globals.css";
 import { Inter } from 'next/font/google';
 
@@ -55,7 +54,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.className}`}>
         <AccountProvider>
-          <WalletInstructions />
           {children}
           <Analytics />
         </AccountProvider>

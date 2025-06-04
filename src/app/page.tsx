@@ -7,6 +7,7 @@ import { GameStatus } from '@/components/GameStatus';
 import { useLemonadeGame } from '@/hooks/useLemonadeGame';
 import styles from './page.module.css';
 import Image from 'next/image';
+import WalletInstructions from "@/components/WalletInstructions";
 
 export default function Home() {
   const [lastResult, setLastResult] = useState<{
@@ -78,48 +79,51 @@ export default function Home() {
   };
 
   return (
-    <div className={styles.page}>
-      <div className={styles.main}>
-        <Image
-          src="/lemonade2.jpg"
-          alt="Lemonade Stand"
-          width={600}
-          height={400}
-          priority
-          style={{ 
-            objectFit: 'cover', 
-            objectPosition: 'center top',
-            borderRadius: '8px',
-            maxHeight: '300px'
-          }}
-        />
-
-        <ConnectWalletButton onWalletConnected={() => {}} />
-
-        <div className={styles.gameContainer}>
-          <GameStatus
-            day={gameState.day}
-            money={gameState.money}
-            inventory={gameState.inventory}
-            weather={gameState.weather}
-            lastResult={lastResult || undefined}
-            onReset={handleReset}
-            onGenerateProof={handleGenerateProof}
-            salesHistory={gameState.salesHistory}
+    <main>
+      <WalletInstructions />
+      <div className={styles.page}>
+        <div className={styles.main}>
+          <Image
+            src="/lemonade2.jpg"
+            alt="Lemonade Stand"
+            width={600}
+            height={400}
+            priority
+            style={{ 
+              objectFit: 'cover', 
+              objectPosition: 'center top',
+              borderRadius: '8px',
+              maxHeight: '300px'
+            }}
           />
 
-          <GameControls
-            onBuyIngredients={gameActions.buyIngredients}
-            onSetPrice={gameActions.setLemonadePrice}
-            onSetAdvertising={gameActions.setAdvertising}
-            onSimulateDay={handleSimulateDay}
-            disabled={!selectedAccount || !selectedWallet}
-            currentMoney={gameState.money}
-            currentAdvertising={gameState.advertising}
-            gameOver={lastResult?.gameOver || false}
-          />
+          <ConnectWalletButton onWalletConnected={() => {}} />
+
+          <div className={styles.gameContainer}>
+            <GameStatus
+              day={gameState.day}
+              money={gameState.money}
+              inventory={gameState.inventory}
+              weather={gameState.weather}
+              lastResult={lastResult || undefined}
+              onReset={handleReset}
+              onGenerateProof={handleGenerateProof}
+              salesHistory={gameState.salesHistory}
+            />
+
+            <GameControls
+              onBuyIngredients={gameActions.buyIngredients}
+              onSetPrice={gameActions.setLemonadePrice}
+              onSetAdvertising={gameActions.setAdvertising}
+              onSimulateDay={handleSimulateDay}
+              disabled={!selectedAccount || !selectedWallet}
+              currentMoney={gameState.money}
+              currentAdvertising={gameState.advertising}
+              gameOver={lastResult?.gameOver || false}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
