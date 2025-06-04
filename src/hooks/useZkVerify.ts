@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAccount } from '@/context/AccountContext';
-import { Risc0Version } from "zkverifyjs";
+import { Library, CurveType, ZkVerifyEvents } from "zkverifyjs";
 
 interface EventData {
     blockHash?: string;
@@ -59,21 +59,39 @@ export function useZkVerify() {
             setError(null);
             setTransactionResult(null);
 
-            const { events, transactionResult } = await session
-                .verify()
-                .risc0({
-                    version: Risc0Version.V2_0
-                })
-                .execute({
-                proofData: {
-                    proof: proofData,
-                    publicSignals: publicSignals,
-                    vk: vk
-                },
-                domainId: 0
+            // First register the verification key if not already registered
+            const { events: regEvents, transactionResult: regResult } = await session.registerVerificationKey()
+                .groth16({ library: Library.snarkjs, curve: CurveType.bn128 })
+                .execute(vk);
+
+            let vkHash = '';
+            
+            // Wait for the verification key registration to be finalized
+            await new Promise<void>((resolve, reject) => {
+                regEvents.on(ZkVerifyEvents.Finalized, (eventData) => {
+                    vkHash = eventData.statementHash;
+                    resolve();
+                });
+                regEvents.on(ZkVerifyEvents.ErrorEvent, (error) => {
+                    reject(new Error(error.message));
+                });
             });
 
-            events.on('includedInBlock', (data: EventData) => {
+            // Now verify the proof using the registered verification key
+            const { events, transactionResult } = await session
+                .verify()
+                .groth16({ library: Library.snarkjs, curve: CurveType.bn128 })
+                .withRegisteredVk()
+                .execute({
+                    proofData: {
+                        vk: vkHash,
+                        proof: proofData,
+                        publicSignals: publicSignals
+                    },
+                    domainId: 0
+                });
+
+            events.on(ZkVerifyEvents.IncludedInBlock, (data: EventData) => {
                 setStatus('includedInBlock');
                 setEventData(data);
             });

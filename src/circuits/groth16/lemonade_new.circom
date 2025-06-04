@@ -29,10 +29,10 @@ template LemonadeGame(maxDays) {
     signal input startingMoney;
     signal input gameStateHash;
     
-    // Validate public inputs are within 18 bits
-    component finalScoreValid = Num2Bits(18);
+    // Validate public inputs are within 20 bits
+    component finalScoreValid = Num2Bits(20);
     component daysPlayedValid = Num2Bits(8);
-    component startingMoneyValid = Num2Bits(18);
+    component startingMoneyValid = Num2Bits(20);
     
     finalScoreValid.in <== finalScore;
     daysPlayedValid.in <== daysPlayed;
@@ -52,6 +52,8 @@ template LemonadeGame(maxDays) {
     signal stateHashValid;
     signal dayMask[maxDays];
     signal maskedScores[maxDays];
+    
+    signal maskedScore[maxDays];
     
     // Error tracking signals
     signal recipeErrors[maxDays];
@@ -91,20 +93,23 @@ template LemonadeGame(maxDays) {
         salesCalc[i] = DailySales();
         dayComps[i] = LessThan(8);
         stateHashers[i] = Poseidon(2);
-        stateMoneyValid[i] = Num2Bits(18);
+        stateMoneyValid[i] = Num2Bits(20);
         stateLemonsValid[i] = Num2Bits(18);
         stateSugarValid[i] = Num2Bits(18);
         stateIceValid[i] = Num2Bits(18);
-        hashInput0Valid[i] = Num2Bits(18);
-        hashInput1Valid[i] = Num2Bits(18);
-        maskedScoreValid[i] = Num2Bits(18);
-        dailyRevenueValid[i] = Num2Bits(18);
-        salesCountValid[i] = Num2Bits(18);
-        dailyPriceValid[i] = Num2Bits(18);
+        hashInput0Valid[i] = Num2Bits(20);
+        hashInput1Valid[i] = Num2Bits(20);
+        maskedScoreValid[i] = Num2Bits(20);
+        dailyRevenueValid[i] = Num2Bits(20);
+        salesCountValid[i] = Num2Bits(20);
+        dailyPriceValid[i] = Num2Bits(20);
     }
     
     // Create day masks and verify each day's state
     var totalScore = 0;
+    signal intermediateScores[maxDays];
+    component intermediateScoreValid[maxDays];
+    
     for (var i = 0; i < maxDays; i++) {
         // Set up day comparison
         dayComps[i].in[0] <== i;
@@ -120,10 +125,20 @@ template LemonadeGame(maxDays) {
         // Validate daily price is within 18 bits
         dailyPriceValid[i].in <== dailyPrices[i];
         
-        // Calculate masked score for this day
-        maskedScores[i] <== dailyStates[i][0] * dayMask[i];
-        maskedScoreValid[i].in <== maskedScores[i];
-        totalScore += maskedScores[i];
+        // Calculate masked score for this day using a safer approach
+        maskedScore[i] <== dailyStates[i][0] * dayMask[i];
+        maskedScoreValid[i].in <== maskedScore[i];
+        
+        // Calculate intermediate score with validation
+        if (i == 0) {
+            intermediateScores[i] <== maskedScore[i];
+        } else {
+            intermediateScores[i] <== intermediateScores[i-1] + maskedScore[i];
+        }
+        intermediateScoreValid[i] = Num2Bits(20);
+        intermediateScoreValid[i].in <== intermediateScores[i];
+        
+        totalScore = intermediateScores[i];
         
         // Validate recipe
         recipeValidators[i].lemons <== dailyRecipes[i][0];
@@ -176,7 +191,7 @@ template LemonadeGame(maxDays) {
     runningScore <== totalScore;
     
     // Validate total score is within 18 bits
-    component totalScoreValid = Num2Bits(18);
+    component totalScoreValid = Num2Bits(20);
     totalScoreValid.in <== totalScore;
     
     // Final hash combining all intermediate hashes
@@ -195,7 +210,7 @@ template LemonadeGame(maxDays) {
     finalScoreTimesDays <== finalScore * daysPlayed;
     
     // Validate final score times days is within 18 bits
-    component finalScoreTimesDaysValid = Num2Bits(18);
+    component finalScoreTimesDaysValid = Num2Bits(20);
     finalScoreTimesDaysValid.in <== finalScoreTimesDays;
     
     scoreCheck.in[0] <== finalScoreTimesDays;
@@ -291,7 +306,7 @@ template RecipeValidator() {
 template DailySales() {
     signal input weather; // 0=rainy, 1=cloudy, 2=sunny, 3=hot
     signal input advertising; // 0=none, 1=flyers, 2=social, 3=radio
-    signal input price; // in cents
+    signal input price; // in 10-cent increments
     
     signal output sales;
     signal output isValid;
@@ -299,7 +314,7 @@ template DailySales() {
     // Validate inputs
     component weatherValid = LessThan(8);
     component adValid = LessThan(8);
-    component priceValid = GreaterThan(18);
+    component priceValid = GreaterThan(20);
     
     weatherValid.in[0] <== weather;
     weatherValid.in[1] <== 4; // 4 weather types (0-3)
@@ -399,81 +414,120 @@ template DailySales() {
 
 // Template for calculating price multiplier
 template PriceMultiplier() {
-    signal input price; // in cents
+    signal input price; // in 10-cent increments
     signal output multiplier;
     
-    // Compare price against thresholds
-    component lt25 = LessThan(18);
-    component lt50 = LessThan(18);
-    component lt75 = LessThan(18);
-    component lt100 = LessThan(18);
-    component lt125 = LessThan(18);
-    component lt150 = LessThan(18);
+    // Compare price against thresholds (in 10-cent increments)
+    component lt20 = LessThan(20);
+    component lt30 = LessThan(20);
+    component lt40 = LessThan(20);
+    component lt50 = LessThan(20);
+    component lt60 = LessThan(20);
+    component lt70 = LessThan(20);
+    component lt80 = LessThan(20);
+    component lt90 = LessThan(20);
+    component lt100 = LessThan(20);
+    component lt110 = LessThan(20);
+    component lt120 = LessThan(20);
+    component lt130 = LessThan(20);
+    component lt140 = LessThan(20);
+    component lt150 = LessThan(20);
+    component lt160 = LessThan(20);
+    component lt170 = LessThan(20);
+    component lt180 = LessThan(20);
+    component lt190 = LessThan(20);
+    component lt200 = LessThan(20);
     
-    lt25.in[0] <== price;
-    lt25.in[1] <== 25; // $0.25
+    lt20.in[0] <== price;
+    lt20.in[1] <== 20; // $2.00
+    
+    lt30.in[0] <== price;
+    lt30.in[1] <== 30; // $3.00
+    
+    lt40.in[0] <== price;
+    lt40.in[1] <== 40; // $4.00
     
     lt50.in[0] <== price;
-    lt50.in[1] <== 50; // $0.50
+    lt50.in[1] <== 50; // $5.00
     
-    lt75.in[0] <== price;
-    lt75.in[1] <== 75; // $0.75
+    lt60.in[0] <== price;
+    lt60.in[1] <== 60; // $6.00
+    
+    lt70.in[0] <== price;
+    lt70.in[1] <== 70; // $7.00
+    
+    lt80.in[0] <== price;
+    lt80.in[1] <== 80; // $8.00
+    
+    lt90.in[0] <== price;
+    lt90.in[1] <== 90; // $9.00
     
     lt100.in[0] <== price;
-    lt100.in[1] <== 100; // $1.00
+    lt100.in[1] <== 100; // $10.00
     
-    lt125.in[0] <== price;
-    lt125.in[1] <== 125; // $1.25
+    lt110.in[0] <== price;
+    lt110.in[1] <== 110; // $11.00
+    
+    lt120.in[0] <== price;
+    lt120.in[1] <== 120; // $12.00
+    
+    lt130.in[0] <== price;
+    lt130.in[1] <== 130; // $13.00
+    
+    lt140.in[0] <== price;
+    lt140.in[1] <== 140; // $14.00
     
     lt150.in[0] <== price;
-    lt150.in[1] <== 150; // $1.50
+    lt150.in[1] <== 150; // $15.00
+    
+    lt160.in[0] <== price;
+    lt160.in[1] <== 160; // $16.00
+    
+    lt170.in[0] <== price;
+    lt170.in[1] <== 170; // $17.00
+    
+    lt180.in[0] <== price;
+    lt180.in[1] <== 180; // $18.00
+    
+    lt190.in[0] <== price;
+    lt190.in[1] <== 190; // $19.00
+    
+    lt200.in[0] <== price;
+    lt200.in[1] <== 200; // $20.00
     
     // Calculate multiplier (scaled down by 10 to avoid large numbers)
-    signal m1; // 30 if price <= 25
-    signal m2; // 20 if 25 < price <= 50
-    signal m3; // 15 if 50 < price <= 75
-    signal m4; // 10 if 75 < price <= 100
-    signal m5; // 7.5 if 100 < price <= 125
-    signal m6; // 5 if 125 < price <= 150
-    signal m7; // 2.5 if price > 150
+    signal m[20]; // Array of multipliers for each price range
     
-    signal lt25Not;
-    signal lt50Not;
-    signal lt75Not;
-    signal lt100Not;
-    signal lt125Not;
-    signal lt150Not;
+    // Initialize all multipliers to 0
+    for (var i = 0; i < 20; i++) {
+        m[i] <== 0;
+    }
     
-    lt25Not <== 1 - lt25.out;
-    lt50Not <== 1 - lt50.out;
-    lt75Not <== 1 - lt75.out;
-    lt100Not <== 1 - lt100.out;
-    lt125Not <== 1 - lt125.out;
-    lt150Not <== 1 - lt150.out;
+    // Set multipliers for each price range
+    m[0] <== lt20.out * 10;  // $0.20-$0.30: 1.0x
+    m[1] <== (1 - lt20.out) * lt30.out * 9;  // $0.30-$0.40: 0.9x
+    m[2] <== (1 - lt30.out) * lt40.out * 8;  // $0.40-$0.50: 0.8x
+    m[3] <== (1 - lt40.out) * lt50.out * 7;  // $0.50-$0.60: 0.7x
+    m[4] <== (1 - lt50.out) * lt60.out * 6;  // $0.60-$0.70: 0.6x
+    m[5] <== (1 - lt60.out) * lt70.out * 5;  // $0.70-$0.80: 0.5x
+    m[6] <== (1 - lt70.out) * lt80.out * 4;  // $0.80-$0.90: 0.4x
+    m[7] <== (1 - lt80.out) * lt90.out * 3;  // $0.90-$1.00: 0.3x
+    m[8] <== (1 - lt90.out) * lt100.out * 2;  // $1.00-$1.10: 0.2x
+    m[9] <== (1 - lt100.out) * lt110.out * 2;  // $1.10-$1.20: 0.2x
+    m[10] <== (1 - lt110.out) * lt120.out * 2;  // $1.20-$1.30: 0.2x
+    m[11] <== (1 - lt120.out) * lt130.out * 2;  // $1.30-$1.40: 0.2x
+    m[12] <== (1 - lt130.out) * lt140.out * 2;  // $1.40-$1.50: 0.2x
+    m[13] <== (1 - lt140.out) * lt150.out * 2;  // $1.50-$1.60: 0.2x
+    m[14] <== (1 - lt150.out) * lt160.out * 2;  // $1.60-$1.70: 0.2x
+    m[15] <== (1 - lt160.out) * lt170.out * 2;  // $1.70-$1.80: 0.2x
+    m[16] <== (1 - lt170.out) * lt180.out * 2;  // $1.80-$1.90: 0.2x
+    m[17] <== (1 - lt180.out) * lt190.out * 2;  // $1.90-$2.00: 0.2x
+    m[18] <== (1 - lt190.out) * lt200.out * 1;  // $2.00: 0.1x
+    m[19] <== (1 - lt200.out) * 1;  // >$2.00: 0.1x
     
-    signal m2Cond;
-    signal m3Cond;
-    signal m4Cond;
-    signal m5Cond;
-    signal m6Cond;
-    signal m7Cond;
-    
-    m2Cond <== lt25Not * lt50.out;
-    m3Cond <== lt50Not * lt75.out;
-    m4Cond <== lt75Not * lt100.out;
-    m5Cond <== lt100Not * lt125.out;
-    m6Cond <== lt125Not * lt150.out;
-    m7Cond <== lt150Not;
-    
-    m1 <== lt25.out * 30;
-    m2 <== m2Cond * 20;
-    m3 <== m3Cond * 15;
-    m4 <== m4Cond * 10;
-    m5 <== m5Cond * 7;
-    m6 <== m6Cond * 5;
-    m7 <== m7Cond * 2;
-    
-    multiplier <== m1 + m2 + m3 + m4 + m5 + m6 + m7;
+    // Sum all multipliers
+    multiplier <== m[0] + m[1] + m[2] + m[3] + m[4] + m[5] + m[6] + m[7] + m[8] + m[9] + 
+                  m[10] + m[11] + m[12] + m[13] + m[14] + m[15] + m[16] + m[17] + m[18] + m[19];
 }
 
 // Template for validating state transitions
@@ -511,10 +565,10 @@ template StateTransitionValidator() {
     isSocial <== adEq[1].out;
     isRadio <== adEq[2].out;
     
-    adCost <== isFlyers * 300 + isSocial * 800 + isRadio * 1500;
+    adCost <== isFlyers * 30 + isSocial * 80 + isRadio * 150;  // Updated costs in 10-cent increments
     
-    // Validate adCost is within 18 bits
-    component adCostValid = Num2Bits(18);
+    // Validate adCost is within 20 bits
+    component adCostValid = Num2Bits(20);
     adCostValid.in <== adCost;
     
     // Check if there were any sales
@@ -528,14 +582,14 @@ template StateTransitionValidator() {
     signal sugarCost;
     signal iceCost;
     
-    lemonsCost <== salesCount * recipeLemons * 5;
-    sugarCost <== salesCount * recipeSugar * 3;
-    iceCost <== salesCount * recipeIce * 2;
+    lemonsCost <== salesCount * recipeLemons * 5;  // 5 10-cent units per lemon
+    sugarCost <== salesCount * recipeSugar * 3;    // 3 10-cent units per sugar
+    iceCost <== salesCount * recipeIce * 2;        // 2 10-cent units per ice
     
     // Validate individual costs are within 18 bits
-    component lemonsCostValid = Num2Bits(18);
-    component sugarCostValid = Num2Bits(18);
-    component iceCostValid = Num2Bits(18);
+    component lemonsCostValid = Num2Bits(20);
+    component sugarCostValid = Num2Bits(20);
+    component iceCostValid = Num2Bits(20);
     
     lemonsCostValid.in <== lemonsCost;
     sugarCostValid.in <== sugarCost;
@@ -543,8 +597,8 @@ template StateTransitionValidator() {
     
     ingredientCost <== lemonsCost + sugarCost + iceCost;
     
-    // Validate ingredientCost is within 18 bits
-    component ingredientCostValid = Num2Bits(18);
+    // Validate ingredientCost is within 20 bits
+    component ingredientCostValid = Num2Bits(20);
     ingredientCostValid.in <== ingredientCost;
     
     // Calculate final cost (only apply ad cost if there were sales)
@@ -553,12 +607,12 @@ template StateTransitionValidator() {
     adCostWithSales <== adCost * hasSales.out;
     finalCost <== ingredientCost + adCostWithSales;
     
-    // Validate finalCost is within 18 bits
-    component finalCostValid = Num2Bits(18);
+    // Validate finalCost is within 20 bits
+    component finalCostValid = Num2Bits(20);
     finalCostValid.in <== finalCost;
     
-    // Validate revenue is within 18 bits
-    component revenueValid = Num2Bits(18);
+    // Validate revenue is within 20 bits
+    component revenueValid = Num2Bits(20);
     revenueValid.in <== revenue;
     
     // Verify money changes
@@ -567,20 +621,20 @@ template StateTransitionValidator() {
     component sugarCheck = IsEqual();
     component iceCheck = IsEqual();
     
-    // Calculate money changes in steps to avoid intermediate values exceeding 18 bits
+    // Calculate money changes in steps to avoid intermediate values exceeding 20 bits
     signal moneyAfterCosts;
     moneyAfterCosts <== prevMoney - finalCost;
     
-    // Validate moneyAfterCosts is within 18 bits
-    component moneyAfterCostsValid = Num2Bits(18);
+    // Validate moneyAfterCosts is within 20 bits
+    component moneyAfterCostsValid = Num2Bits(20);
     moneyAfterCostsValid.in <== moneyAfterCosts;
     
     // Calculate final money
     signal finalMoney;
     finalMoney <== moneyAfterCosts + revenue;
     
-    // Validate finalMoney is within 18 bits
-    component finalMoneyValid = Num2Bits(18);
+    // Validate finalMoney is within 20 bits
+    component finalMoneyValid = Num2Bits(20);
     finalMoneyValid.in <== finalMoney;
     
     moneyCheck.in[0] <== currMoney;
@@ -596,16 +650,16 @@ template StateTransitionValidator() {
     iceCheck.in[1] <== 0; // Ice melts at end of day
     
     // Range checks for money values
-    component moneyRangeCheck = Num2Bits(18); // Changed from 16 to 18 bits
+    component moneyRangeCheck = Num2Bits(20); // Updated to 20 bits
     moneyRangeCheck.in <== currMoney;
 
     // Money comparisons
-    component moneyComp = GreaterThan(18); // Changed from 16 to 18 bits
+    component moneyComp = GreaterThan(20); // Updated to 20 bits
     moneyComp.in[0] <== currMoney;
     moneyComp.in[1] <== prevMoney;
 
     // Additional validation for non-negative values
-    component moneyValid = GreaterEqThan(18); // Already updated
+    component moneyValid = GreaterEqThan(20); // Updated to 20 bits
     component lemonsValid = GreaterEqThan(8);
     component sugarValid = GreaterEqThan(8);
     
@@ -639,6 +693,38 @@ template StateTransitionValidator() {
     
     // Final combination
     isValid <== stateChecksValid * nonNegChecksValid;
+}
+
+// Validate costs and revenues are within 15-bit range
+template ValidateCosts() {
+    signal input cost;
+    signal input revenue;
+
+    component costBits = Num2Bits(15);
+    costBits.in <== cost;
+
+    component revenueBits = Num2Bits(15);
+    revenueBits.in <== revenue;
+}
+
+// Validate final costs and money are within 15-bit range
+template ValidateFinalCosts() {
+    signal input cost;
+    signal input money;
+
+    component costBits = Num2Bits(15);
+    costBits.in <== cost;
+
+    component moneyBits = Num2Bits(15);
+    moneyBits.in <== money;
+}
+
+// Validate final money is within 15-bit range
+template ValidateFinalMoney() {
+    signal input money;
+
+    component moneyBits = Num2Bits(15);
+    moneyBits.in <== money;
 }
 
 // Main circuit component

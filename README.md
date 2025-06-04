@@ -4,7 +4,7 @@ A modern web3 take on the classic Lemonade Stand game, built with Next.js and zk
 
 ## 🎮 Play Now
 
-Visit [https://lemonade-v2-pzwz5r3vv-blockops-projects-034db6b0.vercel.app](https://lemonade-v2-pzwz5r3vv-blockops-projects-034db6b0.vercel.app) to play!
+Visit [https://lemonade-v2.vercel.app](https://lemonade-v2.vercel.app) to play!
 
 ## 🎯 Game Overview
 
@@ -43,9 +43,21 @@ git clone https://github.com/blockops1/lemonade-v2.git
 cd lemonade-v2
 npm install
 
+# Set up environment variables
+cp .env.example .env  # Create .env file from example
+# Edit .env and add your wallet seed phrase
+
 # Run development server
 npm run dev
 ```
+
+### Environment Variables
+
+The following environment variables are required:
+
+- `WALLET_SEED_PHRASE`: Your zkVerify wallet seed phrase for on-chain verification
+
+Create a `.env` file in the root directory with these variables. Never commit your `.env` file to version control!
 
 ## 🛠 Tech Stack
 
@@ -54,6 +66,9 @@ npm run dev
 - zkVerify Wallet Integration
 - Vercel Analytics
 - CSS Modules
+- Circom for Zero-Knowledge Proofs
+- Groth16 Protocol
+- zkVerify.js for On-Chain Verification
 
 ## 📈 Features
 
@@ -64,6 +79,47 @@ npm run dev
 - Daily sales reports
 - Wallet integration
 - Mobile responsive design
+- Zero-Knowledge Proof Verification
+- On-Chain Game State Verification
+
+## 🔐 Zero-Knowledge Integration
+
+The game uses zero-knowledge proofs to verify game state transitions on-chain. This ensures:
+- Transparent and verifiable game progression
+- Fair play without revealing private game state
+- Secure and efficient on-chain verification
+
+### Circuit Details
+
+The game uses a Groth16 circuit (`lemonade_basic.circom`) that verifies:
+- Starting money (public input)
+- Final money (public input)
+- Days played (public input)
+- Daily money calculations (private inputs)
+- Daily revenue (private inputs)
+- Daily advertising costs (private inputs)
+
+### Verification Process
+
+1. Game state is captured in a witness
+2. Proof is generated using snarkjs
+3. Verification key is registered on-chain
+4. Proof is verified using zkVerify.js
+5. Game state is updated based on verification
+
+### Setup and Verification
+
+```bash
+# Generate verification key
+cd src/circuits/groth16
+snarkjs groth16 setup lemonade_basic.r1cs pot12_final.ptau lemonade_basic_final.zkey
+
+# Generate proof
+snarkjs groth16 prove lemonade_basic_final.zkey witness.wtns proof.json public.json
+
+# Verify proof
+node src/scripts/test_verify.cjs
+```
 
 ## 🤝 Contributing
 

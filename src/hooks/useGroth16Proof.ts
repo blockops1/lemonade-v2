@@ -44,7 +44,7 @@ export const useGroth16Proof = () => {
             const intermediateHashes = await Promise.all(states.map(async state => {
                 // First pair: money + lemons
                 const pair1 = poseidon.F.toString(poseidon([
-                    BigInt(Math.round(state.money)),
+                    BigInt(state.money),
                     BigInt(state.lemons)
                 ]));
                 
@@ -107,14 +107,14 @@ export const useGroth16Proof = () => {
         startingMoney: number
     ): Promise<ProofOutput> => {
         try {
-            // Round all money values
+            // Money values are already in 10-cent units, no need to round
             const roundedGameStates = gameStates.map(state => ({
                 ...state,
-                money: Math.round(state.money)
+                money: state.money
             }));
-            const roundedPrices = prices.map(price => Math.round(price));
+            const roundedPrices = prices.map(price => price);
             const roundedFinalScore = Math.round(finalScore);
-            const roundedStartingMoney = Math.round(startingMoney);
+            const roundedStartingMoney = startingMoney;
 
             const gameStateHash = await generateGameStateHash(roundedGameStates);
             

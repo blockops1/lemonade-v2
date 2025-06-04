@@ -2,12 +2,12 @@ pragma circom 2.2.2;
 
 // Game configuration
 constant CONST_MAX_GAME_DAYS = 7;
-constant CONST_INITIAL_BALANCE = 2000;
+constant CONST_INITIAL_BALANCE = 2000;  // 200.00 in 10-cent increments
 
-// Recipe costs
-constant CONST_LEMON_UNIT_COST = 5;
-constant CONST_SUGAR_UNIT_COST = 3;
-constant CONST_ICE_UNIT_COST = 2;
+// Recipe costs (in 10-cent increments)
+constant CONST_LEMON_UNIT_COST = 5;     // 0.50 in 10-cent increments
+constant CONST_SUGAR_UNIT_COST = 3;     // 0.30 in 10-cent increments
+constant CONST_ICE_UNIT_COST = 2;       // 0.20 in 10-cent increments
 
 // Recipe requirements
 constant CONST_MIN_LEMONS_RECIPE = 2;
@@ -28,10 +28,10 @@ constant CONST_AD_SOCIAL = 2;
 constant CONST_AD_RADIO = 3;
 constant CONST_TOTAL_AD_TYPES = 4;
 
-// Advertising costs
-constant CONST_COST_AD_FLYERS = 300;
-constant CONST_COST_AD_SOCIAL = 800;
-constant CONST_COST_AD_RADIO = 1500;
+// Advertising costs (in 10-cent increments)
+constant CONST_COST_AD_FLYERS = 30;     // 3.00 in 10-cent increments
+constant CONST_COST_AD_SOCIAL = 80;     // 8.00 in 10-cent increments
+constant CONST_COST_AD_RADIO = 150;     // 15.00 in 10-cent increments
 
 // Advertising multipliers
 constant CONST_MULT_NO_ADS = 80;

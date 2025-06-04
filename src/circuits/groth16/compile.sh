@@ -1,164 +1,82 @@
 #!/bin/bash
 
-# Exit on any error
-set -e
+echo "[INFO] Starting circuit compilation process..."
 
-# Configuration
-CIRCUIT_NAME="lemonade_new"
-BUILD_DIR="build"
-PHASE1_PATH="$BUILD_DIR/pot12_final.ptau"
-NODE_MODULES_PATH=$(cd ../../../node_modules && pwd)
-POWERS_OF_TAU_URL="https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_12.ptau"
+# Check if circom is installed
+if ! command -v circom &> /dev/null; then
+    echo "[ERROR] circom is not installed. Please install it first."
+    exit 1
+fi
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
+# Check if snarkjs is installed
+if ! command -v snarkjs &> /dev/null; then
+    echo "[ERROR] snarkjs is not installed. Please install it first."
+    exit 1
+fi
 
-# Helper functions
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
+echo "[INFO] Checking dependencies..."
 
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# Create build directory if it doesn't exist
+mkdir -p build
 
-check_dependencies() {
-    log_info "Checking dependencies..."
-    
-    # Check circom
-    if ! command -v circom &> /dev/null; then
-        log_error "circom is not installed. Please install it first."
-        exit 1
-    fi
-    
-    # Check snarkjs
-    if ! command -v snarkjs &> /dev/null; then
-        log_error "snarkjs is not installed. Please install it first."
-        exit 1
-    fi
-    
-    # Check node
-    if ! command -v node &> /dev/null; then
-        log_error "node is not installed. Please install it first."
-        exit 1
-    fi
-}
+echo "[INFO] Setting up directories..."
 
-setup_directories() {
-    log_info "Setting up directories..."
-    mkdir -p "$BUILD_DIR"
-    mkdir -p "$BUILD_DIR/${CIRCUIT_NAME}_js"
-}
+# Compile the circuit
+echo "[INFO] Compiling circuit..."
+circom lemonade_basic.circom --r1cs --wasm --sym --c -o build
 
-compile_circuit() {
-    log_info "Compiling circuit..."
-    circom "$CIRCUIT_NAME.circom" \
-        --r1cs --wasm --sym --c \
-        -l "$NODE_MODULES_PATH/circomlib/circuits" \
-        --output "$BUILD_DIR"
-}
+# Check if compilation was successful
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Circuit compilation failed"
+    exit 1
+fi
 
-download_powers_of_tau() {
-    if [ ! -f "$PHASE1_PATH" ]; then
-        log_info "Downloading Powers of Tau file..."
-        curl -L "$POWERS_OF_TAU_URL" -o "$PHASE1_PATH"
-    else
-        log_info "Powers of Tau file already exists"
-    fi
-}
+# Create ptau directory if it doesn't exist
+mkdir -p ptau
 
-setup_proving_system() {
-    log_info "Setting up proving system..."
-    
-    # Generate the proving key
-    log_info "Generating initial proving key..."
-    snarkjs groth16 setup \
-        "$BUILD_DIR/$CIRCUIT_NAME.r1cs" \
-        "$PHASE1_PATH" \
-        "$BUILD_DIR/${CIRCUIT_NAME}_0000.zkey"
-    
-    # Contribute to the phase 2 ceremony
-    log_info "Contributing to phase 2 ceremony..."
-    snarkjs zkey contribute \
-        "$BUILD_DIR/${CIRCUIT_NAME}_0000.zkey" \
-        "$BUILD_DIR/${CIRCUIT_NAME}_final.zkey" \
-        --name="1st Contributor" -v -e="random"
-    
-    # Export verification key
-    log_info "Exporting verification key..."
-    snarkjs zkey export verificationkey \
-        "$BUILD_DIR/${CIRCUIT_NAME}_final.zkey" \
-        "$BUILD_DIR/verification_key.json"
-    
-    # Generate Solidity verifier
-    log_info "Generating Solidity verifier..."
-    snarkjs zkey export solidityverifier \
-        "$BUILD_DIR/${CIRCUIT_NAME}_final.zkey" \
-        "$BUILD_DIR/verifier.sol"
-}
+# Download Powers of Tau file if it doesn't exist
+if [ ! -f "ptau/powersOfTau28_hez_final_15.ptau" ]; then
+    echo "[INFO] Downloading Powers of Tau file..."
+    wget https://storage.googleapis.com/powersoftau/powersOfTau28_hez_final_15.ptau -O ptau/powersOfTau28_hez_final_15.ptau
+fi
 
-generate_witness() {
-    log_info "Generating witness..."
-    cd "$BUILD_DIR/${CIRCUIT_NAME}_js" || exit
-    
-    if [ -f "../input.json" ]; then
-        node generate_witness.js "${CIRCUIT_NAME}.wasm" "../input.json" witness.wtns
-    else
-        log_error "input.json not found. Skipping witness generation."
-    fi
-    
-    cd ../..
-}
+echo "[INFO] Powers of Tau file already exists"
 
-create_verification_helpers() {
-    log_info "Creating verification helpers..."
-    cat > "$BUILD_DIR/verify.js" << EOL
-const snarkjs = require("snarkjs");
-const fs = require("fs");
-const path = require("path");
+# Setup the proving system
+echo "[INFO] Setting up proving system..."
 
-async function generateProof(input) {
-    const wasmPath = path.join(__dirname, "${CIRCUIT_NAME}_js/${CIRCUIT_NAME}.wasm");
-    const zkeyPath = path.join(__dirname, "${CIRCUIT_NAME}_final.zkey");
-    
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-        input,
-        wasmPath,
-        zkeyPath
-    );
-    return { proof, publicSignals };
-}
+# Generate the initial proving key
+echo "[INFO] Generating initial proving key..."
+snarkjs groth16 setup build/lemonade_basic.r1cs ptau/powersOfTau28_hez_final_15.ptau build/lemonade_basic_final.zkey
 
-async function verifyProof(proof, publicSignals) {
-    const vKeyPath = path.join(__dirname, "verification_key.json");
-    const vKey = JSON.parse(fs.readFileSync(vKeyPath));
-    return await snarkjs.groth16.verify(vKey, publicSignals, proof);
-}
+# Contribute to the phase 2 ceremony
+echo "[INFO] Contributing to phase 2 ceremony..."
+snarkjs zkey contribute build/lemonade_basic_final.zkey build/lemonade_basic_final_contributed.zkey
 
-module.exports = {
-    generateProof,
-    verifyProof
-};
-EOL
-}
+# Export the verification key
+echo "[INFO] Exporting verification key..."
+snarkjs zkey export verificationkey build/lemonade_basic_final_contributed.zkey build/lemonade_basic_verification_key.json
 
-# Main execution
-main() {
-    log_info "Starting circuit compilation process..."
-    
-    check_dependencies
-    setup_directories
-    compile_circuit
-    download_powers_of_tau
-    setup_proving_system
-    generate_witness
-    create_verification_helpers
-    
-    log_info "Circuit compilation completed successfully!"
-    log_info "Build artifacts are in the ${BUILD_DIR} directory"
-}
+# Generate Solidity verifier
+echo "[INFO] Generating Solidity verifier..."
+snarkjs zkey export solidityverifier build/lemonade_basic_final_contributed.zkey build/lemonade_basic_verifier.sol
 
-# Run main function
-main 
+# Generate witness if input.json exists
+if [ -f "input.json" ]; then
+    echo "[INFO] Generating witness..."
+    node build/lemonade_basic_js/generate_witness.js build/lemonade_basic_js/lemonade_basic.wasm input.json build/witness.wtns
+else
+    echo "[ERROR] input.json not found. Skipping witness generation."
+fi
+
+echo "[INFO] Creating verification helpers..."
+# Create a simple verification helper
+cat > build/verify.sh << 'EOF'
+#!/bin/bash
+snarkjs groth16 verify build/lemonade_basic_verification_key.json build/public.json build/proof.json
+EOF
+
+chmod +x build/verify.sh
+
+echo "[INFO] Circuit compilation completed successfully!"
+echo "[INFO] Build artifacts are in the build directory" 
