@@ -11,6 +11,7 @@ interface GameActions {
     sales: number;
     revenue: number;
     weather: string;
+    yesterdayWeather: string;
     customersServed: number;
     gameOver: boolean;
     won: boolean;

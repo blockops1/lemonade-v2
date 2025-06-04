@@ -11,7 +11,6 @@ interface GameStatusProps {
     ice: number;
   };
   weather: string;
-  yesterdayWeather: string;
   lastResult?: {
     sales: number;
     revenue: number;
@@ -48,7 +47,6 @@ interface GameStatusProps {
     sales: number;
     revenue: number;
     weather: string;
-    yesterdayWeather: string;
     advertisingCost: number;
     iceUsed: number;
     iceMelted: number;
@@ -69,7 +67,6 @@ export const GameStatus: React.FC<GameStatusProps> = ({
   money,
   inventory,
   weather,
-  yesterdayWeather,
   lastResult,
   onReset,
   onGenerateProof,
@@ -90,6 +87,9 @@ export const GameStatus: React.FC<GameStatusProps> = ({
     }
   };
 
+  // Get yesterday's weather from sales history
+  const yesterdayWeather = salesHistory.length > 0 ? salesHistory[salesHistory.length - 1].weather : weather;
+
   return (
     <div className={styles.status}>
       <div className={styles.header}>
@@ -102,13 +102,11 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             <h3>Money</h3>
             <p>${(money / 10).toFixed(2)}</p>
           </div>
-          <div className={styles.stat}>
-            <h3>Today's Weather</h3>
-            <p>{weather}</p>
-          </div>
-          <div className={styles.stat}>
-            <h3>Yesterday's Weather</h3>
-            <p>{yesterdayWeather}</p>
+          <div className={styles.weatherInfo}>
+            <div className={styles.weatherItem}>
+              <span className={styles.weatherLabel}>Weather:</span>
+              <span className={styles.weatherValue}>{weather}</span>
+            </div>
           </div>
         </div>
         <button 
@@ -135,7 +133,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
               </div>
               <div className={styles.resultItem}>
                 <span>Yesterday's Weather:</span>
-                <span>{lastResult.yesterdayWeather}</span>
+                <span>{yesterdayWeather}</span>
               </div>
             </div>
 
@@ -216,14 +214,24 @@ export const GameStatus: React.FC<GameStatusProps> = ({
               onClick={handleGenerateProof}
               disabled={isGenerating}
             >
-              {isGenerating ? 'Generating Proof...' : 'Generate Proof'}
+              {isGenerating ? 'Generating Proof...' : 'Submit Proof'}
             </button>
             
             {error && <p className={styles.error}>{error}</p>}
             {status && <p className={styles.status}>{status}</p>}
             
-            {eventData?.transactionHash && (
-              <div className={styles.proofLinks}>
+            <div className={styles.proofLinks}>
+              <a
+                href="https://zkverify-testnet.subscan.io/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.zkverifyLink}
+              >
+                <button className={styles.zkverifyButton}>
+                  View Proof on zkVerify
+                </button>
+              </a>
+              {eventData?.transactionHash && (
                 <a
                   href={`https://zkverify-testnet.subscan.io/extrinsic/${eventData.transactionHash}`}
                   target="_blank"
@@ -234,18 +242,8 @@ export const GameStatus: React.FC<GameStatusProps> = ({
                     View Proof on Block Explorer
                   </button>
                 </a>
-                <a
-                  href={`https://zkverify.io/proof/${eventData.transactionHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.zkverifyLink}
-                >
-                  <button className={styles.zkverifyButton}>
-                    View Proof on zkVerify
-                  </button>
-                </a>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}

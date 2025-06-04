@@ -45,8 +45,19 @@ export default function Home() {
   const handleSimulateDay = () => {
     const result = gameActions.simulateDay();
     setLastResult({
-      ...result,
-      yesterdayWeather: gameState.yesterdayWeather,
+      sales: result.sales,
+      revenue: result.revenue,
+      weather: result.weather,
+      yesterdayWeather: result.yesterdayWeather,
+      customersServed: result.customersServed,
+      gameOver: result.gameOver,
+      won: result.won,
+      finalScore: result.finalScore,
+      advertisingCost: result.advertisingCost,
+      iceUsed: result.iceUsed,
+      iceMelted: result.iceMelted,
+      lemonsUsed: result.lemonsUsed,
+      sugarUsed: result.sugarUsed,
       financialDetails: {
         revenue: result.revenue,
         costs: {
@@ -104,7 +115,6 @@ export default function Home() {
             money={gameState.money}
             inventory={gameState.inventory}
             weather={gameState.weather}
-            yesterdayWeather={gameState.yesterdayWeather}
             lastResult={lastResult || undefined}
             onReset={handleReset}
             onGenerateProof={handleGenerateProof}
