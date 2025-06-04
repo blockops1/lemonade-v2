@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from './GameStatus.module.css';
+import { useGameProof } from '../../hooks/useGameProof';
 
 interface GameStatusProps {
   day: number;
@@ -41,10 +42,26 @@ interface GameStatusProps {
     };
   };
   onReset: () => void;
-  onGenerateProof: () => Promise<{
-    success: boolean;
-    error?: string;
-  }>;
+  onGenerateProof: () => Promise<{ success: boolean; error?: string }>;
+  salesHistory: {
+    day: number;
+    sales: number;
+    revenue: number;
+    weather: string;
+    yesterdayWeather: string;
+    advertisingCost: number;
+    iceUsed: number;
+    iceMelted: number;
+    lemonsUsed: number;
+    sugarUsed: number;
+    recipe: {
+      lemonsPerCup: number;
+      sugarPerCup: number;
+      icePerCup: number;
+    };
+    price: number;
+    advertising: 'none' | 'flyers' | 'social' | 'radio';
+  }[];
 }
 
 export const GameStatus: React.FC<GameStatusProps> = ({
@@ -55,23 +72,21 @@ export const GameStatus: React.FC<GameStatusProps> = ({
   yesterdayWeather,
   lastResult,
   onReset,
-  onGenerateProof
+  onGenerateProof,
+  salesHistory
 }) => {
-  const [isGeneratingProof, setIsGeneratingProof] = useState(false);
+  const { generateAndVerifyProof, isGenerating, error, status, eventData } = useGameProof();
   const [proofError, setProofError] = useState<string | null>(null);
 
   const handleGenerateProof = async () => {
-    setIsGeneratingProof(true);
-    setProofError(null);
-    try {
-      const result = await onGenerateProof();
-      if (!result.success) {
-        setProofError(result.error || 'Failed to generate proof');
-      }
-    } catch (error) {
-      setProofError(error instanceof Error ? error.message : 'Failed to generate proof');
-    } finally {
-      setIsGeneratingProof(false);
+    if (!lastResult?.gameOver || !lastResult.finalScore) {
+      setProofError('Cannot generate proof before game is over');
+      return;
+    }
+
+    const result = await onGenerateProof();
+    if (!result.success) {
+      setProofError(result.error || 'Failed to generate proof');
     }
   };
 
@@ -206,13 +221,21 @@ export const GameStatus: React.FC<GameStatusProps> = ({
           )}
           <button
             onClick={handleGenerateProof}
-            disabled={isGeneratingProof}
+            disabled={isGenerating}
             className={styles.proofButton}
           >
-            {isGeneratingProof ? 'Generating Proof...' : 'Generate Proof'}
+            {isGenerating ? 'Generating Proof...' : 'Generate Proof'}
           </button>
-          {proofError && (
-            <p className={styles.error}>{proofError}</p>
+          {(proofError || error) && (
+            <p className={styles.error}>{proofError || error}</p>
+          )}
+          {status && (
+            <p className={styles.status}>Verification Status: {status}</p>
+          )}
+          {eventData && (
+            <p className={styles.eventData}>
+              Block Hash: {eventData.blockHash}
+            </p>
           )}
         </div>
       )}

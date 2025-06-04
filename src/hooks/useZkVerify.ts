@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useAccount } from '@/context/AccountContext';
-import { Library, CurveType, ZkVerifyEvents } from "zkverifyjs";
+import { zkVerifySession, Library, CurveType, ZkVerifyEvents } from "zkverifyjs";
 
 interface EventData {
     blockHash?: string;
+    transactionHash?: string;
     [key: string]: unknown;
 }
 
@@ -14,6 +15,8 @@ interface TransactionResult {
     proofType?: string;
     domainId?: number;
     statement?: string | null;
+    success: boolean;
+    error?: string;
 }
 
 export interface VerificationKey {
@@ -48,84 +51,83 @@ export function useZkVerify() {
                 throw new Error('Wallet or account is not selected');
             }
 
-            const proofData = proof;
-            const { zkVerifySession } = await import('zkverifyjs');
-            const session = await zkVerifySession.start().Volta().withWallet({
-                source: selectedWallet,
-                accountAddress: selectedAccount,
+            console.log('Starting proof verification with wallet:', {
+                wallet: selectedWallet,
+                account: selectedAccount
             });
 
             setStatus('verifying');
             setError(null);
             setTransactionResult(null);
 
-            // First register the verification key if not already registered
-            const { events: regEvents, transactionResult: regResult } = await session.registerVerificationKey()
-                .groth16({ library: Library.snarkjs, curve: CurveType.bn128 })
-                .execute(vk);
+            // Parse the proof JSON
+            const proofData = JSON.parse(proof);
+            console.log('Parsed proof data:', proofData);
 
-            let vkHash = '';
-            
-            // Wait for the verification key registration to be finalized
-            await new Promise<void>((resolve, reject) => {
-                regEvents.on(ZkVerifyEvents.Finalized, (eventData) => {
-                    vkHash = eventData.statementHash;
-                    resolve();
+            // Start a new zkVerify session with the connected wallet
+            const session = await zkVerifySession.start()
+                .Volta()
+                .withWallet({
+                    source: selectedWallet,
+                    accountAddress: selectedAccount,
                 });
-                regEvents.on(ZkVerifyEvents.ErrorEvent, (error) => {
-                    reject(new Error(error.message));
-                });
-            });
 
-            // Now verify the proof using the registered verification key
-            const { events, transactionResult } = await session
+            console.log('zkVerify session started');
+
+            // Now verify the proof using the registered verification key hash
+            console.log('Starting proof verification...');
+            const { events: verifyEvents, transactionResult: verifyResult } = await session
                 .verify()
                 .groth16({ library: Library.snarkjs, curve: CurveType.bn128 })
                 .withRegisteredVk()
                 .execute({
                     proofData: {
-                        vk: vkHash,
+                        vk: vk,  // This should be the hash from vkey.json
                         proof: proofData,
-                        publicSignals: publicSignals
+                        publicSignals
                     },
                     domainId: 0
                 });
 
-            events.on(ZkVerifyEvents.IncludedInBlock, (data: EventData) => {
-                setStatus('includedInBlock');
-                setEventData(data);
+            // Listen for verification events
+            verifyEvents.on(ZkVerifyEvents.IncludedInBlock, (data) => {
+                console.log('Proof included in block:', data);
+                setStatus('Proof included in block');
+                setEventData({
+                    blockHash: data.blockHash,
+                    transactionHash: data.transactionHash
+                });
             });
 
-            let transactionInfo = null;
-            try {
-                transactionInfo = await transactionResult;
-                // Cast the transaction info to match our interface
+            // Wait for verification to complete
+            console.log('Waiting for verification result...');
+            const result = await verifyResult;
+            console.log('Verification completed:', result);
+            
+            setTransactionResult({
+                success: true,
+                ...result
+            });
+        } catch (error: unknown) {
+            console.error('Error during proof verification:', error);
+            
+            if (error instanceof Error && error.message.includes('Rejected by user')) {
+                setError('Transaction Rejected By User.');
+                setStatus('cancelled');
                 setTransactionResult({
-                    aggregationId: transactionInfo.aggregationId,
-                    blockHash: transactionInfo.blockHash,
-                    txHash: transactionInfo.txHash,
-                    proofType: transactionInfo.proofType,
-                    domainId: transactionInfo.domainId,
-                    statement: transactionInfo.statement
+                    success: false,
+                    error: 'Transaction Rejected By User.'
                 });
-            } catch (error: unknown) {
-                if (error instanceof Error && error.message.includes('Rejected by user')) {
-                    setError('Transaction Rejected By User.');
-                    setStatus('cancelled');
-                    return;
-                }
-                throw new Error(`Transaction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                return;
             }
 
-            if (transactionInfo && transactionInfo.aggregationId) {
-                setStatus('verified');
-            } else {
-                throw new Error("Your proof isn't correct.");
-            }
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            const errorMessage = error instanceof Error ? error.message : 'Failed to verify proof';
             setError(errorMessage);
             setStatus('error');
+            setTransactionResult({
+                success: false,
+                error: errorMessage
+            });
         }
     };
 

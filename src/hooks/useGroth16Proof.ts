@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
+import { groth16 } from 'snarkjs';
 import { buildPoseidon } from 'circomlibjs';
 
 interface GameState {
@@ -14,90 +15,168 @@ interface DailyRecipe {
     icePerCup: number;
 }
 
-interface GameProofInput {
-    finalScore: number;
-    daysPlayed: number;
-    startingMoney: number;
-    gameStateHash: string;
-    dailyStates: number[][]; // [money, lemons, sugar, ice][]
-    dailyRecipes: number[][]; // [lemonsPerCup, sugarPerCup, icePerCup][]
-    dailyPrices: number[];
-    dailyWeather: number[];
-    dailyAdvertising: number[];
-}
-
-interface ProofOutput {
-    proof: any;
-    publicSignals: string[];
-    isValid: boolean;
-}
-
 export const useGroth16Proof = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const generateGameStateHash = useCallback(async (states: GameState[]) => {
+    const generateGameStateHash = async (states: GameState[]): Promise<number> => {
         try {
+            console.log('\n=== GENERATING GAME STATE HASH ===');
+            console.log('Input states:', states);
+            
             const poseidon = await buildPoseidon();
+            console.log('Poseidon hash function initialized');
             
-            // Hash each state in pairs as per the circuit
-            const intermediateHashes = await Promise.all(states.map(async state => {
-                // First pair: money + lemons
-                const pair1 = poseidon.F.toString(poseidon([
-                    BigInt(state.money),
-                    BigInt(state.lemons)
-                ]));
-                
-                // Second pair: sugar + ice
-                const pair2 = poseidon.F.toString(poseidon([
-                    BigInt(state.sugar),
-                    BigInt(state.ice)
-                ]));
-                
-                // Hash the pairs together
-                return poseidon.F.toString(poseidon([
-                    BigInt(pair1),
-                    BigInt(pair2)
-                ]));
-            }));
+            // Process states in chunks of 4 (one state at a time)
+            let currentHash: any = null;
+            for (const state of states) {
+                const inputs = [state.money, state.lemons, state.sugar, state.ice];
+                console.log('\nProcessing state:', {
+                    state,
+                    inputs,
+                    currentHashType: currentHash ? typeof currentHash : 'null',
+                    currentHashValue: currentHash
+                });
 
-            // Final hash combining first and last intermediate hashes
-            const finalHash = poseidon.F.toString(poseidon([
-                BigInt(intermediateHashes[0]),
-                BigInt(intermediateHashes[intermediateHashes.length - 1])
-            ]));
+                if (currentHash === null) {
+                    currentHash = await poseidon(inputs);
+                    console.log('Initial hash generated:', {
+                        type: typeof currentHash,
+                        value: currentHash
+                    });
+                } else {
+                    // Combine previous hash with new state
+                    const combinedInputs = [currentHash, ...inputs];
+                    console.log('Combining with previous hash:', {
+                        combinedInputs,
+                        previousHashType: typeof currentHash,
+                        previousHashValue: currentHash
+                    });
+                    currentHash = await poseidon(combinedInputs);
+                    console.log('New combined hash:', {
+                        type: typeof currentHash,
+                        value: currentHash
+                    });
+                }
+            }
             
-            return finalHash;
+            if (currentHash === null) {
+                throw new Error('No states to hash');
+            }
+
+            // Convert Uint8Array to number
+            if (currentHash instanceof Uint8Array) {
+                console.log('Converting Uint8Array to number');
+                // Take the first 4 bytes and convert to a 32-bit integer
+                const view = new DataView(currentHash.buffer);
+                currentHash = view.getUint32(0, true); // true for little-endian
+                console.log('Converted hash value:', currentHash);
+            }
+            
+            // Ensure it's a finite number
+            if (!Number.isFinite(currentHash)) {
+                console.error('Invalid hash value:', currentHash);
+                throw new Error('Invalid hash value generated');
+            }
+
+            console.log('\nFinal hash value:', {
+                type: typeof currentHash,
+                value: currentHash,
+                isFinite: Number.isFinite(currentHash)
+            });
+            
+            return currentHash;
         } catch (err) {
-            console.error('Error generating game state hash:', err);
-            throw err;
+            console.error('Error in generateGameStateHash:', err);
+            throw new Error('Failed to generate game state hash');
         }
-    }, []);
+    };
 
-    const generateProof = useCallback(async (input: GameProofInput): Promise<ProofOutput> => {
+    const generateProof = async (
+        dailyStates: number[][],
+        dailyRecipes: number[][],
+        dailyPrices: number[],
+        dailyWeather: number[],
+        dailyAdvertising: number[],
+        finalScore: number,
+        startingMoney: number
+    ) => {
         setLoading(true);
         setError(null);
 
         try {
-            // Import verification helpers dynamically
-            const { generateProof, verifyProof } = await import('../circuits/groth16/build/verify.js');
+            console.log('\n=== GENERATING PROOF ===');
+            console.log('Input parameters:', {
+                dailyStates,
+                dailyRecipes,
+                dailyPrices,
+                dailyWeather,
+                dailyAdvertising,
+                finalScore,
+                startingMoney
+            });
+
+            // Extract daily money, revenue, and ad costs from states
+            const dailyMoney = dailyStates.map(state => state[0]);
+            const dailyRevenue = dailyStates.map((state, i) => {
+                const price = dailyPrices[i];
+                const sales = Math.floor(state[1] / dailyRecipes[i][0]); // lemons / lemonsPerCup
+                return sales * price;
+            });
+            const dailyAdCosts = dailyAdvertising.map(ad => {
+                switch(ad) {
+                    case 0: return 0;    // none
+                    case 1: return 90;   // flyers
+                    case 2: return 240;  // social
+                    case 3: return 450;  // tv
+                    default: return 0;
+                }
+            });
+
+            console.log('\nExtracted daily values:', {
+                dailyMoney,
+                dailyRevenue,
+                dailyAdCosts
+            });
+
+            // Prepare the input for the circuit
+            const input = {
+                startingMoney,
+                finalMoney: finalScore,
+                daysPlayed: dailyStates.length,
+                dailyMoney,
+                dailyRevenue,
+                dailyAdCosts
+            };
+
+            console.log('\nCircuit input:', input);
 
             // Generate the proof
-            const { proof, publicSignals } = await generateProof(input);
+            const wasmPath = '/circuits/groth16/build/lemonade_basic_js/lemonade_basic.wasm';
+            const zkeyPath = '/circuits/groth16/build/lemonade_basic_final.zkey';
+            console.log('\nGenerating proof with files:', { wasmPath, zkeyPath });
+            
+            const { proof, publicSignals } = await groth16.fullProve(
+                input,
+                wasmPath,
+                zkeyPath
+            );
 
-            // Verify the proof
-            const isValid = await verifyProof(proof, publicSignals);
-
-            setLoading(false);
-            return { proof, publicSignals, isValid };
+            console.log('\nProof generated successfully');
+            return {
+                proof,
+                publicSignals
+            };
         } catch (err) {
-            setLoading(false);
+            console.error('Error in generateProof:', err);
             setError(err instanceof Error ? err.message : 'Failed to generate proof');
             throw err;
+        } finally {
+            setLoading(false);
         }
-    }, []);
+    };
 
-    const verifyGameState = useCallback(async (
+    const verifyGameState = async (
         gameStates: GameState[],
         recipes: DailyRecipe[],
         prices: number[],
@@ -105,56 +184,52 @@ export const useGroth16Proof = () => {
         advertising: number[],
         finalScore: number,
         startingMoney: number
-    ): Promise<ProofOutput> => {
+    ) => {
+        setLoading(true);
+        setError(null);
+
         try {
-            // Money values are already in 10-cent units, no need to round
-            const roundedGameStates = gameStates.map(state => ({
-                ...state,
-                money: state.money
-            }));
-            const roundedPrices = prices.map(price => price);
-            const roundedFinalScore = Math.round(finalScore);
-            const roundedStartingMoney = startingMoney;
+            const { proof, publicSignals } = await generateProof(
+                gameStates.map(state => [state.money, state.lemons, state.sugar, state.ice]),
+                recipes.map(recipe => [recipe.lemonsPerCup, recipe.sugarPerCup, recipe.icePerCup]),
+                prices,
+                weather,
+                advertising,
+                finalScore,
+                startingMoney
+            );
 
-            const gameStateHash = await generateGameStateHash(roundedGameStates);
+            console.log('\n=== VERIFYING PROOF ===');
+            console.log('Loading verification key...');
             
-            // Convert object arrays to number arrays for the circuit
-            const circuitDailyStates = roundedGameStates.map(state => [
-                state.money,
-                state.lemons,
-                state.sugar,
-                state.ice
-            ]);
+            const response = await fetch('/circuits/groth16/build/lemonade_basic_verification_key.json');
+            const verificationKey = await response.json();
             
-            const circuitDailyRecipes = recipes.map(recipe => [
-                recipe.lemonsPerCup,
-                recipe.sugarPerCup,
-                recipe.icePerCup
-            ]);
-            
-            const input: GameProofInput = {
-                finalScore: roundedFinalScore,
-                daysPlayed: gameStates.length,
-                startingMoney: roundedStartingMoney,
-                gameStateHash,
-                dailyStates: circuitDailyStates,
-                dailyRecipes: circuitDailyRecipes,
-                dailyPrices: roundedPrices,
-                dailyWeather: weather,
-                dailyAdvertising: advertising
+            console.log('Verification key loaded:', verificationKey);
+            console.log('Verifying proof with:', { proof, publicSignals });
+
+            const isValid = await groth16.verify(verificationKey, publicSignals, proof);
+            console.log('Verification result:', isValid);
+
+            return {
+                isValid,
+                proof,
+                publicSignals
             };
-
-            return await generateProof(input);
         } catch (err) {
+            console.error('Error in verifyGameState:', err);
             setError(err instanceof Error ? err.message : 'Failed to verify game state');
             throw err;
+        } finally {
+            setLoading(false);
         }
-    }, [generateProof, generateGameStateHash]);
+    };
 
     return {
         loading,
         error,
         verifyGameState,
-        generateGameStateHash
+        generateGameStateHash,
+        generateProof
     };
 }; 

@@ -11,6 +11,15 @@ const nextConfig = {
         config.module.rules.push({
             test: /\.(wasm|zkey)$/,
             type: 'asset/resource',
+            generator: {
+                filename: 'static/chunks/[path][name][ext]'
+            }
+        });
+
+        // Handle JSON imports
+        config.module.rules.push({
+            test: /\.json$/,
+            type: 'json',
         });
 
         return config;

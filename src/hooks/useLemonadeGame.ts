@@ -249,8 +249,8 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
         if (priceInTens <= 0) {
           throw new Error(`Invalid price on day ${day.day}: Must be greater than 0`);
         }
-        if (priceInTens % 10 !== 0) {
-          throw new Error(`Invalid price on day ${day.day}: Must be a multiple of 10 cents`);
+        if (priceInTens % 1 !== 0) {
+          throw new Error(`Invalid price on day ${day.day}: Must be a whole number`);
         }
         return priceInTens;
       });
@@ -282,14 +282,14 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
           case 0:
             adValue = 0;  // none
             break;
-          case 30:
-            adValue = 1;  // flyers ($3.00 -> 30 in 10-cent increments)
+          case 90:
+            adValue = 1;  // flyers ($9.00 -> 90 in 10-cent increments)
             break;
-          case 80:
-            adValue = 2;  // social ($8.00 -> 80 in 10-cent increments)
+          case 240:
+            adValue = 2;  // social ($24.00 -> 240 in 10-cent increments)
             break;
-          case 150:
-            adValue = 3;  // radio ($15.00 -> 150 in 10-cent increments)
+          case 450:
+            adValue = 3;  // radio ($45.00 -> 450 in 10-cent increments)
             break;
           default:
             throw new Error(`Invalid advertising cost on day ${day.day}: ${day.advertisingCost}`);
@@ -347,11 +347,21 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       console.log('finalScore:', gameState.finalScore);
       console.log('startingMoney:', 200.00);
 
-      // Convert final score and starting money to 10-cent increments for circuit
-      const finalScoreInTens = gameState.finalScore || 0;  // Already in 10-cent units
-      const startingMoneyInTens = 2000;  // Already in 10-cent units ($200.00)
+      // Use final score for the circuit
+      const finalMoney = gameState.finalScore || 0;
+      const startingMoneyInTens = 2000; // $200.00 in 10-cent units
 
-      console.log('\n=== GENERATING PROOF ===');
+      console.log('Generating proof with:', {
+        finalMoney,
+        startingMoneyInTens,
+        daysPlayed: dailyStates.length,
+        dailyStates,
+        dailyRecipes,
+        dailyPrices,
+        dailyWeather,
+        dailyAdvertising
+      });
+
       const proofResult = await verifyGameState(
         dailyStates.map(state => ({
           money: state[0],
@@ -367,7 +377,7 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
         dailyPrices,
         dailyWeather,
         dailyAdvertising,
-        finalScoreInTens,
+        finalMoney,  // Use finalMoney instead of finalScoreInTens
         startingMoneyInTens
       );
 
@@ -375,23 +385,14 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
         return { success: false, error: 'Generated proof is invalid' };
       }
 
-      // Import verification key
-      console.log('\n=== IMPORTING VERIFICATION KEY ===');
-      const vkModule = await import('../circuits/groth16/build/lemonade_new_verification_key.json');
-      const vk: VerificationKey = {
-        protocol: vkModule.default.protocol,
-        curve: vkModule.default.curve,
-        nPublic: vkModule.default.nPublic,
-        vk_alpha_1: vkModule.default.vk_alpha_1,
-        vk_beta_2: vkModule.default.vk_beta_2[0],
-        vk_gamma_2: vkModule.default.vk_gamma_2[0],
-        vk_delta_2: vkModule.default.vk_delta_2[0],
-        IC: vkModule.default.IC
-      };
+      // Load the registered verification key hash
+      console.log('\n=== LOADING REGISTERED VERIFICATION KEY HASH ===');
+      const vkData = await fetch('/vkey.json').then(res => res.json());
+      const vkHash = vkData.hash;
 
       // Send proof to zkVerify
       console.log('\n=== SENDING PROOF TO ZKVERIFY ===');
-      await onVerifyProof(proofResult.proof, proofResult.publicSignals, vk);
+      await onVerifyProof(JSON.stringify(proofResult.proof), proofResult.publicSignals, vkHash);
 
       return { success: true };
     } catch (error) {

@@ -142,6 +142,22 @@
   color: #d32f2f;
   margin-top: 10px;
   font-size: 0.9em;
+  text-align: center;
+}
+
+.status {
+  color: #1976d2;
+  margin-top: 10px;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.eventData {
+  color: #388e3c;
+  margin-top: 10px;
+  font-size: 0.9em;
+  text-align: center;
+  word-break: break-all;
 }
 
 .inventory {

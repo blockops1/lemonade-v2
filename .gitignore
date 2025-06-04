@@ -37,3 +37,8 @@ yarn-error.log*
 next-env.d.ts
 
 .idea
+
+# sensitive files
+src/scripts/test_game_proof.cjs
+src/scripts/test_verify.cjs
+src/scripts/register_vk.cjs

@@ -44,7 +44,24 @@ export default function Home() {
 
   const handleSimulateDay = () => {
     const result = gameActions.simulateDay();
-    setLastResult(result);
+    setLastResult({
+      ...result,
+      yesterdayWeather: gameState.yesterdayWeather,
+      financialDetails: {
+        revenue: result.revenue,
+        costs: {
+          total: result.advertisingCost + (result.lemonsUsed * 0.5 + result.sugarUsed * 0.3 + result.iceUsed * 0.2),
+          ingredients: {
+            total: result.lemonsUsed * 0.5 + result.sugarUsed * 0.3 + result.iceUsed * 0.2,
+            lemons: result.lemonsUsed * 0.5,
+            sugar: result.sugarUsed * 0.3,
+            ice: result.iceUsed * 0.2
+          },
+          advertising: result.advertisingCost
+        },
+        profit: result.revenue - (result.advertisingCost + (result.lemonsUsed * 0.5 + result.sugarUsed * 0.3 + result.iceUsed * 0.2))
+      }
+    });
   };
 
   const handleReset = () => {
@@ -91,6 +108,7 @@ export default function Home() {
             lastResult={lastResult || undefined}
             onReset={handleReset}
             onGenerateProof={handleGenerateProof}
+            salesHistory={gameState.salesHistory}
           />
 
           <GameControls
