@@ -259,6 +259,23 @@ export const GameStatus: React.FC<GameStatusProps> = ({
                 </div>
               </a>
             </div>
+            <div className={styles.proofInfo}>
+              <h4>About the Zero-Knowledge Proof</h4>
+              <p>
+                This game uses zero-knowledge proofs to verify your score on-chain. The proof verifies:
+              </p>
+              <ul>
+                <li>Your starting money (public input)</li>
+                <li>Your final money (public input)</li>
+                <li>Days played (public input)</li>
+                <li>Daily money calculations (private inputs)</li>
+                <li>Daily revenue (private inputs)</li>
+                <li>Daily advertising costs (private inputs)</li>
+              </ul>
+              <p>
+                The proof is generated using a Groth16 circuit and verified on-chain through zkVerify, ensuring fair play without revealing your private game state.
+              </p>
+            </div>
           </div>
         </div>
       )}
