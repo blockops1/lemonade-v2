@@ -21,6 +21,20 @@ interface GameActions {
     iceMelted: number;
     lemonsUsed: number;
     sugarUsed: number;
+    financialDetails: {
+      revenue: number;
+      costs: {
+        total: number;
+        ingredients: {
+          total: number;
+          lemons: number;
+          sugar: number;
+          ice: number;
+        };
+        advertising: number;
+      };
+      profit: number;
+    };
   };
   resetGame: () => void;
   getGameSummary: () => {
@@ -137,7 +151,7 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       const dailyStates: DailyState[] = [];
 
       // Calculate states iteratively instead of using map
-      let prevMoney = 2000; // Starting money in 10-cent increments (200.00)
+      let prevMoney = 1200; // Use the correct initial money value (1200 = $120.00 in 10-cent units)
       let prevLemons = 0;   // Start with 0 used ingredients
       let prevSugar = 0;    // Start with 0 used ingredients
       let prevIce = 0;      // Start with 0 used ingredients
@@ -346,11 +360,11 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       console.log('dailyWeather:', JSON.stringify(dailyWeather, null, 2));
       console.log('dailyAdvertising:', JSON.stringify(dailyAdvertising, null, 2));
       console.log('finalScore:', gameState.finalScore);
-      console.log('startingMoney:', 200.00);
+      console.log('startingMoney:', gameState.money);
 
       // Use final score for the circuit
       const finalMoney = gameState.finalScore || 0;
-      const startingMoneyInTens = 2000; // $200.00 in 10-cent units
+      const startingMoneyInTens = 1200; // Use the correct initial money value (1200 = $120.00 in 10-cent units)
 
       console.log('Generating proof with:', {
         finalMoney,

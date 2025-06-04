@@ -245,6 +245,16 @@ export const GameStatus: React.FC<GameStatusProps> = ({
                   </button>
                 </a>
               )}
+              <a
+                href={`/proof-decoder?extrinsic=${proofUrl.split('/').pop()}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.decoderLink}
+              >
+                <button className={styles.decoderButton}>
+                  Decode Proof Details
+                </button>
+              </a>
             </div>
             <div className={styles.infoArea}>
               <a

@@ -150,15 +150,19 @@
   flex-direction: column;
   gap: 1rem;
   margin-top: 1rem;
+  width: 100%;
 }
 
 .blockExplorerLink,
-.zkverifyLink {
+.zkverifyLink,
+.decoderLink {
   text-decoration: none;
+  width: 100%;
 }
 
 .explorerButton,
-.zkverifyButton {
+.zkverifyButton,
+.decoderButton {
   width: 100%;
   padding: 0.75rem 1.5rem;
   border: none;
@@ -185,6 +189,15 @@
 
 .zkverifyButton:hover {
   background-color: #5b4bc4;
+}
+
+.decoderButton {
+  background-color: #10b981;
+  color: white;
+}
+
+.decoderButton:hover {
+  background-color: #059669;
 }
 
 .error {

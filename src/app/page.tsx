@@ -58,20 +58,7 @@ export default function Home() {
       iceMelted: result.iceMelted,
       lemonsUsed: result.lemonsUsed,
       sugarUsed: result.sugarUsed,
-      financialDetails: {
-        revenue: result.revenue,
-        costs: {
-          total: result.advertisingCost + (result.lemonsUsed * 0.5 + result.sugarUsed * 0.3 + result.iceUsed * 0.2),
-          ingredients: {
-            total: result.lemonsUsed * 0.5 + result.sugarUsed * 0.3 + result.iceUsed * 0.2,
-            lemons: result.lemonsUsed * 0.5,
-            sugar: result.sugarUsed * 0.3,
-            ice: result.iceUsed * 0.2
-          },
-          advertising: result.advertisingCost
-        },
-        profit: result.revenue - (result.advertisingCost + (result.lemonsUsed * 0.5 + result.sugarUsed * 0.3 + result.iceUsed * 0.2))
-      }
+      financialDetails: result.financialDetails
     });
   };
 

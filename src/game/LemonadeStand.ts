@@ -451,30 +451,30 @@ export class LemonadeStand {
         profit
       }
     } : {
-      // Get yesterday's data from sales history
-      sales: yesterdayData.sales,
-      revenue: yesterdayData.revenue,
+      // Use today's data instead of yesterday's
+      sales: actualSales,
+      revenue,
       weather: this.state.weather,  // Today's weather
       yesterdayWeather: yesterdayData.weather,  // Yesterday's weather from sales history
-      customersServed: yesterdayData.sales,  // Use actual sales as customers served
-      advertisingCost: yesterdayData.advertisingCost,
-      iceUsed: yesterdayData.iceUsed,
-      iceMelted: yesterdayData.iceMelted,
-      lemonsUsed: yesterdayData.lemonsUsed,
-      sugarUsed: yesterdayData.sugarUsed,
+      customersServed: totalCustomers,  // Use actual customers for today
+      advertisingCost: this.state.advertising.cost,
+      iceUsed,
+      iceMelted,
+      lemonsUsed,
+      sugarUsed,
       financialDetails: {
-        revenue: yesterdayData.revenue,
+        revenue,
         costs: {
-          total: yesterdayData.advertisingCost + (yesterdayData.lemonsUsed * this.PRICES.lemons + yesterdayData.sugarUsed * this.PRICES.sugar + yesterdayData.iceUsed * this.PRICES.ice),
+          total: totalCosts,
           ingredients: {
-            total: yesterdayData.lemonsUsed * this.PRICES.lemons + yesterdayData.sugarUsed * this.PRICES.sugar + yesterdayData.iceUsed * this.PRICES.ice,
-            lemons: yesterdayData.lemonsUsed * this.PRICES.lemons,
-            sugar: yesterdayData.sugarUsed * this.PRICES.sugar,
-            ice: yesterdayData.iceUsed * this.PRICES.ice
+            total: totalIngredientCost,
+            lemons: ingredientCosts.lemons,
+            sugar: ingredientCosts.sugar,
+            ice: ingredientCosts.ice
           },
-          advertising: yesterdayData.advertisingCost
+          advertising: this.state.advertising.cost
         },
-        profit: yesterdayData.revenue - (yesterdayData.advertisingCost + yesterdayData.lemonsUsed * this.PRICES.lemons + yesterdayData.sugarUsed * this.PRICES.sugar + yesterdayData.iceUsed * this.PRICES.ice)
+        profit
       }
     };
 
