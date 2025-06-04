@@ -37,6 +37,7 @@ export const GameDisplay: React.FC<GameDisplayProps> = ({
           <li>Sugar: {inventory.sugar}</li>
           <li>Ice: {inventory.ice}</li>
         </ul>
+        <p>Let&apos;s make some lemonade!</p>
       </div>
 
       {lastResult && (

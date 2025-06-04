@@ -30,7 +30,9 @@
     "@types/react": "18",
     "@types/react-dom": "18",
     "@types/snarkjs": "^0.7.9",
-    "eslint": "8",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
+    "eslint": "^8.57.1",
     "eslint-config-next": "14.2.15",
     "ts-node": "^10.9.2",
     "typescript": "5"

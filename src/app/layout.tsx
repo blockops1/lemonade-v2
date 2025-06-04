@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { AccountProvider } from "@/context/AccountContext";
 import WalletInstructions from "@/components/WalletInstructions";
 import "./globals.css";
+import { Inter } from 'next/font/google';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -16,6 +17,8 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: "Lemonade Stand Game - A zkVerify Experience",
@@ -40,6 +43,7 @@ export const metadata: Metadata = {
     description: "Run your own virtual lemonade stand in this fun web3 game! Connect your zkVerify wallet, manage resources, and compete to make the most profit in 7 days.",
     images: ["/og-image.png"],
   },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
 };
 
 export default function RootLayout({
@@ -49,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${inter.className}`}>
         <AccountProvider>
           <WalletInstructions />
           {children}

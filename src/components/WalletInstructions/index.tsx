@@ -10,7 +10,7 @@ const WalletInstructions: React.FC = () => {
           <p><strong>To get started:</strong></p>
           <ol>
             <li>Connect your zkVerify wallet using the green button below</li>
-            <li>Start with $200.00 initial capital</li>
+            <li>Start with $120.00 initial capital</li>
             <li>Buy ingredients:
               <ul>
                 <li>Lemons: $0.50 each</li>
