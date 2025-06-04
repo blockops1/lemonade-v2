@@ -137,10 +137,6 @@ export const GameStatus: React.FC<GameStatusProps> = ({
                 <span>Yesterday's Weather:</span>
                 <span>{lastResult.yesterdayWeather}</span>
               </div>
-              <div className={styles.resultItem}>
-                <span>Today's Weather:</span>
-                <span>{lastResult.weather}</span>
-              </div>
             </div>
 
             <div className={styles.resultSection}>
@@ -227,16 +223,28 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             {status && <p className={styles.status}>{status}</p>}
             
             {eventData?.transactionHash && (
-              <a
-                href={`https://zkverify-testnet.subscan.io/extrinsic/${eventData.transactionHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.blockExplorerLink}
-              >
-                <button className={styles.explorerButton}>
-                  View Proof on Block Explorer
-                </button>
-              </a>
+              <div className={styles.proofLinks}>
+                <a
+                  href={`https://zkverify-testnet.subscan.io/extrinsic/${eventData.transactionHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.blockExplorerLink}
+                >
+                  <button className={styles.explorerButton}>
+                    View Proof on Block Explorer
+                  </button>
+                </a>
+                <a
+                  href={`https://zkverify.io/proof/${eventData.transactionHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.zkverifyLink}
+                >
+                  <button className={styles.zkverifyButton}>
+                    View Proof on zkVerify
+                  </button>
+                </a>
+              </div>
             )}
           </div>
         </div>

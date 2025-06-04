@@ -145,24 +145,46 @@
   cursor: not-allowed;
 }
 
-.blockExplorerLink {
+.proofLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.blockExplorerLink,
+.zkverifyLink {
   text-decoration: none;
-  margin-top: 0.5rem;
+}
+
+.explorerButton,
+.zkverifyButton {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .explorerButton {
-  padding: 0.75rem 1.5rem;
-  background-color: #2196F3;
+  background-color: #4a90e2;
   color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
 }
 
 .explorerButton:hover {
-  background-color: #1976D2;
+  background-color: #357abd;
+}
+
+.zkverifyButton {
+  background-color: #6c5ce7;
+  color: white;
+}
+
+.zkverifyButton:hover {
+  background-color: #5b4bc4;
 }
 
 .error {
