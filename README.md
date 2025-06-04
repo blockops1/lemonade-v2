@@ -10,28 +10,30 @@ Visit [https://lemonade-v2.vercel.app](https://lemonade-v2.vercel.app) to play!
 
 Run your virtual lemonade stand and try to make the most profit in 7 days! You'll need to:
 - Manage your inventory (lemons, sugar, ice)
-- Set your recipe and prices
+- Set your price per cup
 - Choose advertising strategies
 - Watch the weather and adapt your strategy
 - Make smart business decisions to maximize profit
 
 ## 🎲 Game Rules
 
-1. Start with $20 initial capital
+1. Start with $200.00 initial capital
 2. Buy ingredients at market prices:
    - Lemons: $0.50 each
-   - Sugar: $0.25 per unit
-   - Ice: $0.10 per cube
-3. Set your recipe (lemons, sugar, ice per cup)
-4. Choose your selling price
-5. Select advertising options
+   - Sugar: $0.30 each
+   - Ice: $0.20 each
+3. Each cup of lemonade requires:
+   - 2 lemons
+   - 1 sugar
+   - 3 ice cubes (all ice melts at end of day)
+4. Set your price per cup (between $0.50 and $6.00)
+5. Choose advertising options to attract more customers
 6. Weather affects your sales:
    - Sunny: Best for sales
    - Cloudy: Moderate sales
    - Rainy: Lower sales
-7. Ice melts at the end of each day
-8. Game ends after 7 days
-9. Your final score is your total money
+7. Game ends after 7 days
+8. Your final score is your total profit
 
 ## 🔧 Development Setup
 
@@ -73,14 +75,15 @@ Create a `.env` file in the root directory with these variables. Never commit yo
 ## 📈 Features
 
 - Real-time weather system
-- Dynamic pricing
+- Dynamic pricing ($0.50 to $6.00 per cup)
 - Inventory management
-- Advertising system
+- Advertising system with customer multipliers
 - Daily sales reports
 - Wallet integration
 - Mobile responsive design
 - Zero-Knowledge Proof Verification
 - On-Chain Game State Verification
+- Block explorer integration for proof verification
 
 ## 🔐 Zero-Knowledge Integration
 
