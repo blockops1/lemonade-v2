@@ -81,21 +81,22 @@ export function useZkVerify() {
                 .groth16({ library: Library.snarkjs, curve: CurveType.bn128 })
                 .withRegisteredVk()
                 .execute({
-                    proofData: {
+                proofData: {
                         vk: vk,  // This should be the hash from vkey.json
-                        proof: proofData,
+                    proof: proofData,
                         publicSignals
-                    },
-                    domainId: 0
-                });
+                },
+                domainId: 0
+            });
 
             // Listen for verification events
             verifyEvents.on(ZkVerifyEvents.IncludedInBlock, (data) => {
                 console.log('Proof included in block:', data);
+                console.log('View proof on zkVerify:', `https://zkverify-testnet.subscan.io/extrinsic/${data.txHash}`);
                 setStatus('Proof included in block');
                 setEventData({
                     blockHash: data.blockHash,
-                    transactionHash: data.transactionHash
+                    transactionHash: data.txHash
                 });
             });
 
@@ -108,18 +109,18 @@ export function useZkVerify() {
                 success: true,
                 ...result
             });
-        } catch (error: unknown) {
+            } catch (error: unknown) {
             console.error('Error during proof verification:', error);
             
             if (error instanceof Error && error.message.includes('Rejected by user')) {
-                setError('Transaction Rejected By User.');
-                setStatus('cancelled');
+                    setError('Transaction Rejected By User.');
+                    setStatus('cancelled');
                 setTransactionResult({
                     success: false,
                     error: 'Transaction Rejected By User.'
                 });
-                return;
-            }
+                    return;
+                }
 
             const errorMessage = error instanceof Error ? error.message : 'Failed to verify proof';
             setError(errorMessage);
