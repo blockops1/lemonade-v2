@@ -211,32 +211,34 @@ export const GameStatus: React.FC<GameStatusProps> = ({
       {lastResult && lastResult.gameOver && (
         <div className={styles.gameOver}>
           <h3>Game Over!</h3>
-          <p>
-            {lastResult.won 
-              ? 'Congratulations! You won!' 
-              : 'Better luck next time!'}
-          </p>
-          {lastResult.finalScore !== null && (
-            <p>Final Score: ${(lastResult.finalScore / 10).toFixed(2)}</p>
-          )}
-          <button
-            onClick={handleGenerateProof}
-            disabled={isGenerating}
-            className={styles.proofButton}
-          >
-            {isGenerating ? 'Generating Proof...' : 'Generate Proof'}
-          </button>
-          {(proofError || error) && (
-            <p className={styles.error}>{proofError || error}</p>
-          )}
-          {status && (
-            <p className={styles.status}>Verification Status: {status}</p>
-          )}
-          {eventData && (
-            <p className={styles.eventData}>
-              Block Hash: {eventData.blockHash}
-            </p>
-          )}
+          <p>Final Score: ${(lastResult.finalScore! / 10).toFixed(2)}</p>
+          <p>{lastResult.won ? 'Congratulations! You won!' : 'Better luck next time!'}</p>
+          
+          <div className={styles.gameOverActions}>
+            <button
+              className={styles.proofButton}
+              onClick={handleGenerateProof}
+              disabled={isGenerating}
+            >
+              {isGenerating ? 'Generating Proof...' : 'Generate Proof'}
+            </button>
+            
+            {error && <p className={styles.error}>{error}</p>}
+            {status && <p className={styles.status}>{status}</p>}
+            
+            {eventData?.transactionHash && (
+              <a
+                href={`https://zkverify-testnet.subscan.io/extrinsic/${eventData.transactionHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.blockExplorerLink}
+              >
+                <button className={styles.explorerButton}>
+                  View Proof on Block Explorer
+                </button>
+              </a>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -151,7 +151,7 @@ export class LemonadeStand {
   }
 
   private calculateFinalScore(): number {
-    // Score should be in dollars
+    // Return money in 10-cent units to match the circuit's expectations
     return this.state.money;
   }
 
