@@ -119,6 +119,7 @@ export default function Home() {
             disabled={!selectedAccount || !selectedWallet}
             currentMoney={gameState.money}
             currentAdvertising={gameState.advertising}
+            gameOver={lastResult?.gameOver || false}
           />
         </div>
       </div>

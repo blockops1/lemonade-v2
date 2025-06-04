@@ -10,12 +10,24 @@ const WalletInstructions: React.FC = () => {
           <p><strong>To get started:</strong></p>
           <ol>
             <li>Connect your zkVerify wallet using the green button below</li>
-            <li>Start with $20 initial capital</li>
-            <li>Buy ingredients (lemons, sugar, ice)</li>
-            <li>Set your recipe and price</li>
+            <li>Start with $200.00 initial capital</li>
+            <li>Buy ingredients:
+              <ul>
+                <li>Lemons: $0.50 each</li>
+                <li>Sugar: $0.30 each</li>
+                <li>Ice: $0.20 each</li>
+              </ul>
+            </li>
+            <li>Set your price per cup (between $0.50 and $6.00)</li>
             <li>Choose advertising options</li>
             <li>Run your stand for 7 days</li>
           </ol>
+          <p><strong>Recipe:</strong> Each cup of lemonade requires:</p>
+          <ul>
+            <li>2 lemons</li>
+            <li>1 sugar</li>
+            <li>3 ice cubes (all ice melts at end of day)</li>
+          </ul>
           <p><strong>Goal:</strong> Make the most profit possible in 7 days!</p>
           <p className={styles.tip}>💡 Tip: Watch the weather forecast - it affects your sales!</p>
         </div>

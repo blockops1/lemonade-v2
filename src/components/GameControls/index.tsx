@@ -13,6 +13,7 @@ interface GameControlsProps {
     cost: number;
     multiplier: number;
   };
+  gameOver?: boolean;
 }
 
 export const GameControls: React.FC<GameControlsProps> = ({
@@ -22,7 +23,8 @@ export const GameControls: React.FC<GameControlsProps> = ({
   onSimulateDay,
   disabled = false,
   currentMoney,
-  currentAdvertising
+  currentAdvertising,
+  gameOver = false
 }) => {
   const [quantities, setQuantities] = useState({
     lemons: 0,
@@ -62,6 +64,10 @@ export const GameControls: React.FC<GameControlsProps> = ({
     setPrice(newPrice);
     onSetPrice(newPrice);
   };
+
+  if (gameOver) {
+    return null;
+  }
 
   return (
     <div className={styles.controls}>
