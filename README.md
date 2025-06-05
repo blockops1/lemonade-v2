@@ -1,6 +1,61 @@
-# 🍋 Lemonade Stand Game
+# Lemonade Stand Game with Zero-Knowledge Proofs
 
-A modern web3 take on the classic Lemonade Stand game, built with Next.js and zkVerify wallet integration.
+A Next.js application that implements a lemonade stand game with zero-knowledge proof verification.
+
+## Project Structure
+
+```
+src/
+├── app/                 # Next.js app directory
+├── components/          # React components
+│   ├── ConnectWalletButton/
+│   ├── GameControls/
+│   ├── GameStatus/
+│   └── WalletInstructions/
+├── circuits/           # Zero-knowledge circuits
+│   └── groth16/       # Groth16 implementation
+│       └── docs/      # Build scripts and documentation
+├── context/           # React context providers
+├── game/             # Game logic and state management
+├── hooks/            # Custom React hooks
+├── proofs/           # Zero-knowledge proofs
+│   └── archive/      # Archived proof files
+├── types/            # TypeScript type definitions
+└── utils/            # Utility functions
+```
+
+## Setup
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Run the development server:
+```bash
+npm run dev
+```
+
+3. Build for production:
+```bash
+npm run build
+```
+
+## Features
+
+- Lemonade stand game simulation
+- Zero-knowledge proof generation and verification
+- Wallet connection and transaction signing
+- Proof verification on-chain
+- Proof decoder for detailed verification
+
+## Technologies
+
+- Next.js 14
+- React
+- TypeScript
+- Groth16 Zero-Knowledge Proofs
+- zkVerify Protocol
 
 ## 🎮 Play Now
 

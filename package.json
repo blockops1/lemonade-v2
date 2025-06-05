@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:proof": "ts-node src/scripts/test_proof.ts"
+    "test:proof": "ts-node src/scripts/test_proof.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@talismn/connect-components": "1.1.9",
