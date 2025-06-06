@@ -73,7 +73,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
   onGenerateProof,
   salesHistory
 }) => {
-  const { generateAndVerifyProof, isGenerating, error, status, eventData } = useGameProof();
+  const { generateAndVerifyProof, isGenerating, error, status, eventData, hasSubmittedProof } = useGameProof();
   const [proofError, setProofError] = useState<string | null>(null);
   const proofUrl = useProofUrl();
 
@@ -214,9 +214,9 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             <button
               className={styles.proofButton}
               onClick={handleGenerateProof}
-              disabled={isGenerating}
+              disabled={isGenerating || hasSubmittedProof}
             >
-              {isGenerating ? 'Generating Proof...' : 'Submit Proof'}
+              {isGenerating ? 'Generating Proof...' : hasSubmittedProof ? 'Proof Submitted' : 'Submit Proof'}
             </button>
             
             {error && <p className={styles.error}>{error}</p>}

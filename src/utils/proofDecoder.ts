@@ -61,8 +61,12 @@ export function decodeManualProof(proofData: string): ProofData {
 export async function decodeProof(extrinsicId: string): Promise<ProofData> {
   console.log('Attempting to decode proof for extrinsic:', extrinsicId);
   try {
-    // Fetch the proof data from the block explorer API
-    const response = await fetch(`https://zkverify-testnet.subscan.io/api/scan/extrinsic/${extrinsicId}`);
+    // Fetch the proof data through our API route
+    const response = await fetch(`/api/proof?extrinsicId=${extrinsicId}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch proof data');
+    }
     const data = await response.json();
     console.log('Received data from API:', data);
 
@@ -100,6 +104,6 @@ export async function decodeProof(extrinsicId: string): Promise<ProofData> {
     };
   } catch (error) {
     console.error('Error decoding proof:', error);
-    throw new Error('Failed to decode proof');
+    throw error; // Re-throw the error to preserve the original error message
   }
 } 

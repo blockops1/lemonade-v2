@@ -19,6 +19,7 @@ function ProofDecoderContent() {
   const [error, setError] = useState<string | null>(null);
   const [blockExplorerUrl, setBlockExplorerUrl] = useState<string>('');
   const [manualInput, setManualInput] = useState<string>('');
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copying' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     const fetchProof = async () => {
@@ -61,6 +62,45 @@ function ProofDecoderContent() {
     }
   };
 
+  const handleCopyParameters = async () => {
+    try {
+      setCopyStatus('copying');
+      
+      // Extract the extrinsic ID from the block explorer URL
+      const extrinsicId = blockExplorerUrl.split('/').pop();
+      if (!extrinsicId) {
+        throw new Error('Invalid block explorer URL');
+      }
+
+      // Fetch the parameters through our API route
+      const response = await fetch(`/api/proof?extrinsicId=${extrinsicId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch proof data');
+      }
+
+      const data = await response.json();
+      console.log('Received data from API:', data);
+
+      if (!data.data?.parameters) {
+        throw new Error('No parameters found in the response');
+      }
+
+      // Format the parameters as a pretty-printed JSON string
+      const parametersJson = JSON.stringify(data.data.parameters, null, 2);
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(parametersJson);
+      
+      setCopyStatus('success');
+      setTimeout(() => setCopyStatus('idle'), 2000); // Reset status after 2 seconds
+    } catch (err) {
+      console.error('Error copying parameters:', err);
+      setCopyStatus('error');
+      setTimeout(() => setCopyStatus('idle'), 2000); // Reset status after 2 seconds
+    }
+  };
+
   return (
     <div className={styles.container}>
       <h1>Proof Decoder</h1>
@@ -89,6 +129,16 @@ function ProofDecoderContent() {
             >
               View on Block Explorer
             </a>
+            <button 
+              onClick={handleCopyParameters}
+              className={`${styles.copyButton} ${styles[copyStatus]}`}
+              disabled={copyStatus === 'copying'}
+            >
+              {copyStatus === 'copying' && 'Copying...'}
+              {copyStatus === 'success' && '✓ Copied!'}
+              {copyStatus === 'error' && '✗ Failed to copy'}
+              {copyStatus === 'idle' && 'Copy Proof Verification Parameters'}
+            </button>
           </div>
 
           <div className={styles.manualInputSection}>

@@ -15,10 +15,19 @@ interface GameProofData {
 export const useGameProof = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasSubmittedProof, setHasSubmittedProof] = useState(false);
   const { generateProof, verifyGameState } = useGroth16Proof();
   const { onVerifyProof, status, eventData, transactionResult } = useZkVerify();
 
   const generateAndVerifyProof = async (gameData: GameProofData) => {
+    if (hasSubmittedProof) {
+      setError('A proof has already been submitted for this game');
+      return {
+        success: false,
+        error: 'A proof has already been submitted for this game'
+      };
+    }
+
     setIsGenerating(true);
     setError(null);
 
@@ -62,6 +71,7 @@ export const useGameProof = () => {
 
       // Send proof to zkVerify
       await onVerifyProof(JSON.stringify(proofResult.proof), proofResult.publicSignals, vk);
+      setHasSubmittedProof(true);
 
       return {
         success: true,
@@ -85,6 +95,7 @@ export const useGameProof = () => {
     error,
     status,
     eventData,
-    transactionResult
+    transactionResult,
+    hasSubmittedProof
   };
 }; 
