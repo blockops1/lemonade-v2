@@ -5,7 +5,7 @@ interface ProofData {
   verificationStatus: boolean;
 }
 
-function parseHexToNumber(hex: string): number {
+export function parseHexToNumber(hex: string): number {
   console.log('Parsing hex:', hex);
   // Remove '0x' prefix
   const hexWithoutPrefix = hex.slice(2);
@@ -61,8 +61,12 @@ export function decodeManualProof(proofData: string): ProofData {
 export async function decodeProof(extrinsicId: string): Promise<ProofData> {
   console.log('Attempting to decode proof for extrinsic:', extrinsicId);
   try {
-    // Fetch the proof data from the block explorer API
-    const response = await fetch(`https://zkverify-testnet.subscan.io/api/scan/extrinsic/${extrinsicId}`);
+    // Fetch the proof data through our API route
+    const response = await fetch(`/api/proof?extrinsicId=${extrinsicId}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch proof data');
+    }
     const data = await response.json();
     console.log('Received data from API:', data);
 
@@ -82,7 +86,7 @@ export async function decodeProof(extrinsicId: string): Promise<ProofData> {
     // [0] - starting money (in cents)
     // [1] - final money (in cents)
     // [2] - days played
-    // [3] - verification status (0 = false, 1 = true)
+    // [3] - verification status (0 = false, 7 = true)
     const [startingMoney, finalMoney, daysPlayed, verificationStatus] = pubsParam.value.map(parseHexToNumber);
 
     console.log('Decoded values:', {
@@ -96,10 +100,10 @@ export async function decodeProof(extrinsicId: string): Promise<ProofData> {
       startingMoney,
       finalMoney,
       daysPlayed,
-      verificationStatus: verificationStatus === 1
+      verificationStatus: verificationStatus === 7
     };
   } catch (error) {
     console.error('Error decoding proof:', error);
-    throw new Error('Failed to decode proof');
+    throw error; // Re-throw the error to preserve the original error message
   }
 } 

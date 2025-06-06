@@ -111,6 +111,10 @@
   border-radius: 8px;
   margin-bottom: 2rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
 }
 
 .blockExplorerSection h2 {
@@ -132,6 +136,39 @@
 
 .blockExplorerLink:hover {
   background-color: #357abd;
+}
+
+.copyButton {
+  padding: 0.75rem 1.5rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+}
+
+.copyButton:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.copyButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.copyButton.copying {
+  background-color: #6b7280;
+}
+
+.copyButton.success {
+  background-color: #059669;
+}
+
+.copyButton.error {
+  background-color: #dc2626;
 }
 
 .placeholder {

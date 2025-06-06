@@ -1,7 +1,7 @@
-let globalProofUrl: string = 'https://zkverify-testnet.subscan.io/';
+let globalProofUrl: string | null = null;
 let listeners: Array<() => void> = [];
 
-export const setGlobalProofUrl = (url: string) => {
+export const setGlobalProofUrl = (url: string | null) => {
     console.log('[GlobalState] Setting new proof URL:', url);
     globalProofUrl = url;
     // Notify all listeners

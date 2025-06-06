@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import styles from './ProofDecoder.module.css';
-import { decodeProof, decodeManualProof } from '@/utils/proofDecoder';
+import { decodeProof, decodeManualProof, parseHexToNumber } from '@/utils/proofDecoder';
 
 interface DecodedProof {
   startingMoney: number;
@@ -19,6 +19,8 @@ function ProofDecoderContent() {
   const [error, setError] = useState<string | null>(null);
   const [blockExplorerUrl, setBlockExplorerUrl] = useState<string>('');
   const [manualInput, setManualInput] = useState<string>('');
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copying' | 'success' | 'error'>('idle');
+  const [extrinsicId, setExtrinsicId] = useState<string>('');
 
   useEffect(() => {
     const fetchProof = async () => {
@@ -61,6 +63,124 @@ function ProofDecoderContent() {
     }
   };
 
+  const handleCopyParameters = async () => {
+    try {
+      setCopyStatus('copying');
+      
+      // Get the extrinsic ID from the URL parameters
+      const extrinsicId = searchParams.get('extrinsic');
+      if (!extrinsicId) {
+        throw new Error('No extrinsic ID found in URL');
+      }
+
+      // Fetch the parameters through our API route
+      const response = await fetch(`/api/proof?extrinsicId=${extrinsicId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch proof data');
+      }
+
+      const data = await response.json();
+      console.log('Received data from API:', data);
+
+      if (!data.data?.parameters) {
+        throw new Error('No parameters found in the response');
+      }
+
+      // Format the parameters as a pretty-printed JSON string
+      const parametersJson = JSON.stringify(data.data.parameters, null, 2);
+      console.log('Copying parameters:', parametersJson);
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(parametersJson);
+      
+      setCopyStatus('success');
+      setTimeout(() => setCopyStatus('idle'), 2000); // Reset status after 2 seconds
+    } catch (err) {
+      console.error('Error copying parameters:', err);
+      setCopyStatus('error');
+      setTimeout(() => setCopyStatus('idle'), 2000); // Reset status after 2 seconds
+    }
+  };
+
+  const handleExtrinsicIdSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!extrinsicId) return;
+
+    try {
+      console.log('Fetching proof data for extrinsic:', extrinsicId);
+      
+      // Fetch the proof data through our API route
+      const response = await fetch(`/api/proof?extrinsicId=${extrinsicId}`);
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch proof data');
+      }
+      
+      const data = await response.json();
+      console.log('Raw API Response:', data);
+      console.log('Data structure:', {
+        hasData: !!data.data,
+        hasParameters: !!data.data?.parameters,
+        parametersLength: data.data?.parameters?.length,
+        parameters: data.data?.parameters
+      });
+
+      if (!data.data?.parameters) {
+        console.error('Missing data structure:', data);
+        throw new Error('No proof data found');
+      }
+
+      // Find the public inputs array
+      const pubsParam = data.data.parameters.find((param: any) => param.name === 'pubs');
+      console.log('Found pubs parameter:', pubsParam);
+      
+      if (!pubsParam?.value || !Array.isArray(pubsParam.value)) {
+        console.error('Invalid pubs parameter:', pubsParam);
+        throw new Error('No public inputs found in proof');
+      }
+
+      console.log('Public inputs array:', pubsParam.value);
+
+      // The public inputs are in order:
+      // [0] - starting money (in cents)
+      // [1] - final money (in cents)
+      // [2] - days played
+      // [3] - verification status (0 = false, 1 = true)
+      const [startingMoney, finalMoney, daysPlayed, verificationStatus] = pubsParam.value.map(parseHexToNumber);
+
+      console.log('Decoded values:', {
+        startingMoney,
+        finalMoney,
+        daysPlayed,
+        verificationStatus
+      });
+
+      // Convert verification status to boolean (7 = true, 0 = false)
+      const isVerified = verificationStatus === 7;
+      console.log('Verification status:', { raw: verificationStatus, boolean: isVerified });
+
+      const proof: DecodedProof = {
+        startingMoney,
+        finalMoney,
+        daysPlayed,
+        verificationStatus: isVerified
+      };
+
+      console.log('Final proof object:', proof);
+      setDecodedProof(proof);
+      setError(null);
+    } catch (error) {
+      console.error('Error in handleExtrinsicIdSubmit:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch proof data');
+      setDecodedProof(null);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <h1>Proof Decoder</h1>
@@ -89,36 +209,24 @@ function ProofDecoderContent() {
             >
               View on Block Explorer
             </a>
+            <button 
+              onClick={handleCopyParameters}
+              className={`${styles.copyButton} ${styles[copyStatus]}`}
+              disabled={copyStatus === 'copying'}
+            >
+              {copyStatus === 'copying' && 'Copying...'}
+              {copyStatus === 'success' && '✓ Copied!'}
+              {copyStatus === 'error' && '✗ Failed to copy'}
+              {copyStatus === 'idle' && 'Copy Proof Verification Parameters'}
+            </button>
           </div>
 
           <div className={styles.manualInputSection}>
-            <h2>Verify Your Game Proof</h2>
-            <div className={styles.instructions}>
-              <ol className={styles.steps}>
-                <li>
-                  <strong>Step 1:</strong> Click the "View on Block Explorer" link above to open your proof in the block explorer
-                </li>
-                <li>
-                  <strong>Step 2:</strong> In the block explorer, locate the "Parameters" section
-                </li>
-                <li>
-                  <strong>Step 3:</strong> Copy the entire proof data (it should be a long string of characters)
-                </li>
-                <li>
-                  <strong>Step 4:</strong> Paste the proof data into the field below
-                </li>
-                <li>
-                  <strong>Step 5:</strong> Click "Decode Proof" to verify your game results
-                </li>
-              </ol>
-              <p className={styles.note}>
-                Note: The verification will confirm your starting money, final money, and days played. Make sure the proof data is complete and properly formatted.
-              </p>
-            </div>
+            <h2>Verify Your Game Proof - Paste the Parameters in the Field Below to Decode and Verify</h2>
             <textarea
               value={manualInput}
               onChange={(e) => setManualInput(e.target.value)}
-              placeholder="Paste your Block Explorer Parameter Data here..."
+              placeholder="Paste your Proof Verification Parameters here..."
               className={styles.manualInput}
               rows={10}
             />
@@ -158,6 +266,24 @@ function ProofDecoderContent() {
               </div>
             </>
           )}
+
+          <div className={styles.instructions}>
+            <h2>How to Verify Your Proof</h2>
+            <ol className={styles.steps}>
+              <li>
+                <strong>Step 1:</strong> Click the "Copy Proof Verification Parameters" button above
+              </li>
+              <li>
+                <strong>Step 2:</strong> Paste the copied parameters into the text field below
+              </li>
+              <li>
+                <strong>Step 3:</strong> Click "Decode Proof" to verify your game results
+              </li>
+            </ol>
+            <p className={styles.note}>
+              Note: The verification will confirm your starting money, final money, and days played. Make sure the proof data is complete and properly formatted.
+            </p>
+          </div>
         </div>
       )}
     </div>

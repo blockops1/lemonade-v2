@@ -73,7 +73,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
   onGenerateProof,
   salesHistory
 }) => {
-  const { generateAndVerifyProof, isGenerating, error, status, eventData } = useGameProof();
+  const { generateAndVerifyProof, isGenerating, error, status, eventData, hasSubmittedProof } = useGameProof();
   const [proofError, setProofError] = useState<string | null>(null);
   const proofUrl = useProofUrl();
 
@@ -214,27 +214,28 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             <button
               className={styles.proofButton}
               onClick={handleGenerateProof}
-              disabled={isGenerating}
+              disabled={isGenerating || hasSubmittedProof}
             >
-              {isGenerating ? 'Generating Proof...' : 'Submit Proof'}
+              {isGenerating ? 'Generating Proof...' : hasSubmittedProof ? 'Proof Submitted' : 'Submit Proof'}
             </button>
             
             {error && <p className={styles.error}>{error}</p>}
             {status && <p className={styles.status}>{status}</p>}
             
             <div className={styles.proofLinks}>
-              {proofUrl && (
-                <a
-                  href={proofUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.zkverifyLink}
+              <a
+                href={proofUrl || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.zkverifyLink}
+              >
+                <button 
+                  className={styles.zkverifyButton}
+                  disabled={!proofUrl}
                 >
-                  <button className={styles.zkverifyButton}>
-                    View Proof on zkVerify
-                  </button>
-                </a>
-              )}
+                  View Proof on zkVerify
+                </button>
+              </a>
               {eventData?.transactionHash && (
                 <a
                   href={`https://zkverify-testnet.subscan.io/extrinsic/${eventData.transactionHash}`}
@@ -248,12 +249,15 @@ export const GameStatus: React.FC<GameStatusProps> = ({
                 </a>
               )}
               <a
-                href={proofUrl ? `/proof-decoder?extrinsic=${proofUrl.split('/').pop()}` : '/proof-decoder'}
+                href={proofUrl ? `/proof-decoder?extrinsic=${proofUrl.split('/').pop()}` : '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.decoderLink}
               >
-                <button className={styles.decoderButton}>
+                <button 
+                  className={styles.decoderButton}
+                  disabled={!proofUrl}
+                >
                   Decode Proof Details
                 </button>
               </a>
