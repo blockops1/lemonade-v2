@@ -5,7 +5,7 @@ interface ProofData {
   verificationStatus: boolean;
 }
 
-function parseHexToNumber(hex: string): number {
+export function parseHexToNumber(hex: string): number {
   console.log('Parsing hex:', hex);
   // Remove '0x' prefix
   const hexWithoutPrefix = hex.slice(2);
@@ -86,7 +86,7 @@ export async function decodeProof(extrinsicId: string): Promise<ProofData> {
     // [0] - starting money (in cents)
     // [1] - final money (in cents)
     // [2] - days played
-    // [3] - verification status (0 = false, 1 = true)
+    // [3] - verification status (0 = false, 7 = true)
     const [startingMoney, finalMoney, daysPlayed, verificationStatus] = pubsParam.value.map(parseHexToNumber);
 
     console.log('Decoded values:', {
@@ -100,7 +100,7 @@ export async function decodeProof(extrinsicId: string): Promise<ProofData> {
       startingMoney,
       finalMoney,
       daysPlayed,
-      verificationStatus: verificationStatus === 1
+      verificationStatus: verificationStatus === 7
     };
   } catch (error) {
     console.error('Error decoding proof:', error);
