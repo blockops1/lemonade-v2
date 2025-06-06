@@ -58,11 +58,8 @@ export const connectToMobileWallet = async (walletType: 'talisman' | 'subwallet'
       }, 2000);
     }
   } else if (walletType === 'subwallet') {
-    const dappUrl = encodeURIComponent(window.location.origin);
-    console.log('DApp URL:', window.location.origin);
-    console.log('Encoded DApp URL:', dappUrl);
-    
-    const deepLink = `subwallet://wc?app=lemonade&returnUrl=${returnUrl}&action=connect&network=volta&dappUrl=${dappUrl}`;
+    // SubWallet uses a simpler deep link format
+    const deepLink = `subwallet://wc?app=lemonade&network=volta`;
     console.log('SubWallet deep link:', deepLink);
     window.location.href = deepLink;
 
