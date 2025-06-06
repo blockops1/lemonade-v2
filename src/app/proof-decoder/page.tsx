@@ -99,7 +99,7 @@ function ProofDecoderContent() {
                   <strong>Step 1:</strong> Click the "View on Block Explorer" link above to open your proof in the block explorer
                 </li>
                 <li>
-                  <strong>Step 2:</strong> In the block explorer, locate the "zk proof verification data" section
+                  <strong>Step 2:</strong> In the block explorer, locate the "Parameters" section
                 </li>
                 <li>
                   <strong>Step 3:</strong> Copy the entire proof data (it should be a long string of characters)
@@ -118,7 +118,7 @@ function ProofDecoderContent() {
             <textarea
               value={manualInput}
               onChange={(e) => setManualInput(e.target.value)}
-              placeholder="Paste your zk proof verification data here..."
+              placeholder="Paste your Block Explorer Parameter Data here..."
               className={styles.manualInput}
               rows={10}
             />

@@ -123,3 +123,25 @@
 .transactionDetails p:last-child {
   margin-bottom: 0;
 }
+
+.decoderLink {
+  margin-top: 2rem;
+  text-align: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.decoderLink a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.decoderLink a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}

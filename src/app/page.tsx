@@ -120,7 +120,18 @@ export default function Home() {
               currentMoney={gameState.money}
               currentAdvertising={gameState.advertising}
               gameOver={lastResult?.gameOver || false}
+              inventory={gameState.inventory}
             />
+          </div>
+
+          <div className={styles.decoderLink}>
+            <a
+              href="/proof-decoder"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View Proof Decoder
+            </a>
           </div>
         </div>
       </div>

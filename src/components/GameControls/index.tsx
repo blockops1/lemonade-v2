@@ -14,6 +14,11 @@ interface GameControlsProps {
     multiplier: number;
   };
   gameOver?: boolean;
+  inventory: {
+    lemons: number;
+    sugar: number;
+    ice: number;
+  };
 }
 
 export const GameControls: React.FC<GameControlsProps> = ({
@@ -24,12 +29,13 @@ export const GameControls: React.FC<GameControlsProps> = ({
   disabled = false,
   currentMoney,
   currentAdvertising,
-  gameOver = false
+  gameOver = false,
+  inventory
 }) => {
   const [quantities, setQuantities] = useState({
-    lemons: 0,
-    sugar: 0,
-    ice: 0
+    lemons: '',
+    sugar: '',
+    ice: ''
   });
   const [price, setPrice] = useState(3.00);  // Start at $3.00
 
@@ -46,16 +52,24 @@ export const GameControls: React.FC<GameControlsProps> = ({
   ];
 
   const handleQuantityChange = (item: 'lemons' | 'sugar' | 'ice', value: string) => {
-    const quantity = parseInt(value) || 0;
+    // Allow any input, including empty string
     setQuantities(prev => ({
       ...prev,
-      [item]: quantity
+      [item]: value
     }));
   };
 
   const handleBuy = (item: 'lemons' | 'sugar' | 'ice') => {
-    if (quantities[item] > 0) {
-      onBuyIngredients(item, quantities[item]);
+    const quantity = parseInt(quantities[item]) || 0;
+    if (quantity > 0) {
+      const success = onBuyIngredients(item, quantity);
+      // Only clear the input if the purchase failed
+      if (!success) {
+        setQuantities(prev => ({
+          ...prev,
+          [item]: ''
+        }));
+      }
     }
   };
 
@@ -79,8 +93,9 @@ export const GameControls: React.FC<GameControlsProps> = ({
           <label>
             Lemons ($0.50 each):
             <input
-              type="number"
-              min="0"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={quantities.lemons}
               onChange={(e) => handleQuantityChange('lemons', e.target.value)}
               disabled={disabled}
@@ -88,7 +103,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
           </label>
           <button 
             onClick={() => handleBuy('lemons')}
-            disabled={disabled || quantities.lemons === 0}
+            disabled={disabled || !quantities.lemons || parseInt(quantities.lemons) === 0}
           >
             Buy Lemons
           </button>
@@ -98,8 +113,9 @@ export const GameControls: React.FC<GameControlsProps> = ({
           <label>
             Sugar ($0.30 each):
             <input
-              type="number"
-              min="0"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={quantities.sugar}
               onChange={(e) => handleQuantityChange('sugar', e.target.value)}
               disabled={disabled}
@@ -107,7 +123,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
           </label>
           <button 
             onClick={() => handleBuy('sugar')}
-            disabled={disabled || quantities.sugar === 0}
+            disabled={disabled || !quantities.sugar || parseInt(quantities.sugar) === 0}
           >
             Buy Sugar
           </button>
@@ -117,8 +133,9 @@ export const GameControls: React.FC<GameControlsProps> = ({
           <label>
             Ice ($0.20 each):
             <input
-              type="number"
-              min="0"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={quantities.ice}
               onChange={(e) => handleQuantityChange('ice', e.target.value)}
               disabled={disabled}
@@ -126,7 +143,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
           </label>
           <button 
             onClick={() => handleBuy('ice')}
-            disabled={disabled || quantities.ice === 0}
+            disabled={disabled || !quantities.ice || parseInt(quantities.ice) === 0}
           >
             Buy Ice
           </button>
@@ -198,7 +215,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
       <button
         className={styles.simulateButton}
         onClick={onSimulateDay}
-        disabled={disabled}
+        disabled={disabled || (inventory.lemons === 0 && inventory.sugar === 0 && inventory.ice === 0)}
       >
         Start Day
       </button>
