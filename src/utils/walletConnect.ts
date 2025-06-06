@@ -34,31 +34,45 @@ export const WALLET_DEEP_LINKS = {
 };
 
 export const connectToMobileWallet = async (walletType: 'talisman' | 'subwallet') => {
+  console.log('Starting mobile wallet connection:', { walletType });
+  
   const currentUrl = window.location.href;
   const returnUrl = encodeURIComponent(currentUrl);
+  console.log('Current URL:', currentUrl);
+  console.log('Encoded return URL:', returnUrl);
 
   if (walletType === 'talisman') {
     const deepLink = `talisman://wc?app=lemonade&returnUrl=${returnUrl}&action=connect&network=volta`;
+    console.log('Talisman deep link:', deepLink);
     window.location.href = deepLink;
 
     // For iOS, we need to handle the case where the app isn't installed
     if (isIOS()) {
+      console.log('iOS device detected, setting up app store fallback');
       setTimeout(() => {
         // If we're still on the same page after 2 seconds, the app probably isn't installed
         if (document.visibilityState === 'visible') {
+          console.log('App not detected, redirecting to App Store');
           window.location.href = 'https://apps.apple.com/app/talisman-wallet/id1623455061';
         }
       }, 2000);
     }
   } else if (walletType === 'subwallet') {
-    const deepLink = `subwallet://wc?app=lemonade&returnUrl=${returnUrl}&action=connect&network=volta&dappUrl=${encodeURIComponent(window.location.origin)}`;
+    const dappUrl = encodeURIComponent(window.location.origin);
+    console.log('DApp URL:', window.location.origin);
+    console.log('Encoded DApp URL:', dappUrl);
+    
+    const deepLink = `subwallet://wc?app=lemonade&returnUrl=${returnUrl}&action=connect&network=volta&dappUrl=${dappUrl}`;
+    console.log('SubWallet deep link:', deepLink);
     window.location.href = deepLink;
 
     // For iOS, we need to handle the case where the app isn't installed
     if (isIOS()) {
+      console.log('iOS device detected, setting up app store fallback');
       setTimeout(() => {
         // If we're still on the same page after 2 seconds, the app probably isn't installed
         if (document.visibilityState === 'visible') {
+          console.log('App not detected, redirecting to App Store');
           window.location.href = 'https://apps.apple.com/app/subwallet/id1633059480';
         }
       }, 2000);

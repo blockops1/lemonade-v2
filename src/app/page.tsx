@@ -9,6 +9,7 @@ import styles from './page.module.css';
 import Image from 'next/image';
 import WalletInstructions from "@/components/WalletInstructions";
 import { setGlobalProofUrl } from '@/utils/globalState';
+import DebugPanel from '@/components/DebugPanel';
 
 export default function Home() {
   const [lastResult, setLastResult] = useState<{
@@ -42,7 +43,7 @@ export default function Home() {
   } | null>(null);
   
   const { selectedAccount, selectedWallet } = useAccount();
-  const [gameState, gameActions] = useLemonadeGame();
+  const { gameState, gameActions } = useLemonadeGame();
 
   const handleSimulateDay = () => {
     const result = gameActions.simulateDay();
@@ -81,65 +82,38 @@ export default function Home() {
   };
 
   return (
-    <main>
-      <WalletInstructions />
-      <div className={styles.page}>
-        <div className={styles.main}>
-          <Image
-            src="/lemonade2.jpg"
-            alt="Lemonade Stand"
-            width={800}
-            height={400}
-            priority
-            style={{ 
-              objectFit: 'cover', 
-              objectPosition: 'center 30%',
-              borderRadius: '8px',
-              maxHeight: '300px',
-              width: '100%',
-              height: 'auto',
-              aspectRatio: '2/1'
-            }}
+    <main className={styles.main}>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Lemonade Stand</h1>
+          <ConnectWalletButton onWalletConnected={() => {}} />
+        </div>
+        <div className={styles.content}>
+          <GameStatus
+            day={gameState.day}
+            money={gameState.money}
+            inventory={gameState.inventory}
+            weather={gameState.weather}
+            lastResult={lastResult || undefined}
+            onReset={handleReset}
+            onGenerateProof={handleGenerateProof}
+            salesHistory={gameState.salesHistory}
           />
 
-          <ConnectWalletButton onWalletConnected={() => {}} />
-
-          <div className={styles.gameContainer}>
-            <GameStatus
-              day={gameState.day}
-              money={gameState.money}
-              inventory={gameState.inventory}
-              weather={gameState.weather}
-              lastResult={lastResult || undefined}
-              onReset={handleReset}
-              onGenerateProof={handleGenerateProof}
-              salesHistory={gameState.salesHistory}
-            />
-
-            <GameControls
-              onBuyIngredients={gameActions.buyIngredients}
-              onSetPrice={gameActions.setLemonadePrice}
-              onSetAdvertising={gameActions.setAdvertising}
-              onSimulateDay={handleSimulateDay}
-              disabled={!selectedAccount || !selectedWallet}
-              currentMoney={gameState.money}
-              currentAdvertising={gameState.advertising}
-              gameOver={lastResult?.gameOver || false}
-              inventory={gameState.inventory}
-            />
-          </div>
-
-          <div className={styles.decoderLink}>
-            <a
-              href="/proof-decoder"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View Proof Decoder
-            </a>
-          </div>
+          <GameControls
+            onBuyIngredients={gameActions.buyIngredients}
+            onSetPrice={gameActions.setLemonadePrice}
+            onSetAdvertising={gameActions.setAdvertising}
+            onSimulateDay={handleSimulateDay}
+            disabled={!selectedAccount || !selectedWallet}
+            currentMoney={gameState.money}
+            currentAdvertising={gameState.advertising}
+            gameOver={lastResult?.gameOver || false}
+            inventory={gameState.inventory}
+          />
         </div>
       </div>
+      <DebugPanel />
     </main>
   );
 }

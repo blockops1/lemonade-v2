@@ -1,0 +1,73 @@
+.debugContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toggleButton {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.panel {
+    position: fixed;
+    bottom: 60px;
+    right: 20px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 300px;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-y: auto;
+    color: white;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.logs {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.logEntry {
+    display: flex;
+    gap: 8px;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.timestamp {
+    color: #888;
+    white-space: nowrap;
+}
+
+.message {
+    word-break: break-all;
+}
+
+.info {
+    color: #fff;
+}
+
+.error {
+    color: #ff6b6b;
+}
+
+.success {
+    color: #51cf66;
+}
+
+@media (max-width: 768px) {
+    .panel {
+        width: calc(100% - 40px);
+        max-height: 200px;
+    }
+} 
