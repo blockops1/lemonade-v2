@@ -1,15 +1,39 @@
 import React from 'react';
 import styles from './WalletInstructions.module.css';
+import { isMobile } from '@/utils/device';
 
 const WalletInstructions: React.FC = () => {
+  const mobile = isMobile();
+
   return (
     <div className={styles.instructions}>
       <div className={styles.container}>
         <h2>Welcome to the Lemonade Stand Game! 🍋</h2>
         <div className={styles.steps}>
           <p><strong>To get started:</strong></p>
+          {mobile ? (
+            <>
+              <p>📱 <strong>Mobile Users:</strong></p>
+              <ol>
+                <li>Click the "Connect Wallet" button below</li>
+                <li>Choose your preferred wallet:
+                  <ul>
+                    <li>Talisman Wallet - A secure wallet for Polkadot and Substrate chains</li>
+                    <li>SubWallet - A comprehensive wallet for the Polkadot ecosystem</li>
+                  </ul>
+                </li>
+                <li>You'll be redirected to your chosen wallet app</li>
+                <li>Approve the connection in the wallet app</li>
+                <li>You'll be returned to the game automatically</li>
+              </ol>
+            </>
+          ) : (
+            <ol>
+              <li>Connect your zkVerify wallet using the green button below</li>
+            </ol>
+          )}
+          <p>Then:</p>
           <ol>
-            <li>Connect your zkVerify wallet using the green button below</li>
             <li>Start with $120.00 initial capital</li>
             <li>Buy ingredients:
               <ul>

@@ -2,6 +2,8 @@ import React, { useState, forwardRef } from 'react';
 import { useAccount } from '@/context/AccountContext';
 import dynamic from 'next/dynamic';
 import styles from './ConnectWalletButton.module.css';
+import { isMobile } from '@/utils/device';
+import { connectToMobileWallet } from '@/utils/walletConnect';
 
 const WalletSelect = dynamic(() =>
     import('@talismn/connect-components').then((mod) => mod.WalletSelect), {
@@ -23,9 +25,20 @@ interface Account {
 const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConnected: (rowIndex: number) => void }>(() => {
     const { selectedAccount, setSelectedAccount, setSelectedWallet } = useAccount();
     const [isWalletSelectOpen, setIsWalletSelectOpen] = useState(false);
+    const [showMobileOptions, setShowMobileOptions] = useState(false);
 
-    const handleWalletConnectOpen = () => setIsWalletSelectOpen(true);
-    const handleWalletConnectClose = () => setIsWalletSelectOpen(false);
+    const handleWalletConnectOpen = () => {
+        if (isMobile()) {
+            setShowMobileOptions(true);
+        } else {
+            setIsWalletSelectOpen(true);
+        }
+    };
+
+    const handleWalletConnectClose = () => {
+        setIsWalletSelectOpen(false);
+        setShowMobileOptions(false);
+    };
 
     const handleWalletSelected = (wallet: { extensionName: string }) => {
         setSelectedWallet(wallet.extensionName);
@@ -43,6 +56,11 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
         setSelectedAccount(account.address);
     };
 
+    const handleMobileWalletSelect = (walletType: 'talisman' | 'subwallet') => {
+        connectToMobileWallet(walletType);
+        setShowMobileOptions(false);
+    };
+
     return (
         <>
             <button
@@ -54,7 +72,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
                     : 'Connect Wallet'}
             </button>
 
-            {isWalletSelectOpen && (
+            {isWalletSelectOpen && !isMobile() && (
                 <WalletSelect
                     dappName="LemonadeV2"
                     open={isWalletSelectOpen}
@@ -65,6 +83,17 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
                     onAccountSelected={handleAccountSelected}
                     showAccountsList
                 />
+            )}
+
+            {showMobileOptions && (
+                <div className={styles.mobileOptions}>
+                    <button onClick={() => handleMobileWalletSelect('talisman')}>
+                        Connect with Talisman
+                    </button>
+                    <button onClick={() => handleMobileWalletSelect('subwallet')}>
+                        Connect with SubWallet
+                    </button>
+                </div>
             )}
         </>
     );
