@@ -28,6 +28,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
     const [showMobileOptions, setShowMobileOptions] = useState(false);
     const [isDeepLinking, setIsDeepLinking] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
+    const [selectedWalletType, setSelectedWalletType] = useState<'talisman' | 'subwallet' | null>(null);
 
     // Handle visibility change for deep linking
     useEffect(() => {
@@ -50,12 +51,15 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
                     }
                 } else {
                     setConnectionStatus('error');
+                    // If connection failed, show mobile options again after a delay
+                    setTimeout(() => {
+                        setShowMobileOptions(true);
+                    }, 1000);
                 }
 
                 // Reset deep linking state after a delay
                 setTimeout(() => {
                     setIsDeepLinking(false);
-                    setShowMobileOptions(false);
                 }, 1000);
             }
         };
@@ -98,6 +102,8 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
     const handleMobileWalletSelect = (walletType: 'talisman' | 'subwallet') => {
         setIsDeepLinking(true);
         setConnectionStatus('connecting');
+        setSelectedWalletType(walletType);
+        setShowMobileOptions(false);
         connectToMobileWallet(walletType);
     };
 
@@ -107,7 +113,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
         }
         switch (connectionStatus) {
             case 'connecting':
-                return 'Connecting...';
+                return `Connecting to ${selectedWalletType === 'talisman' ? 'Talisman' : 'SubWallet'}...`;
             case 'connected':
                 return 'Connected!';
             case 'error':

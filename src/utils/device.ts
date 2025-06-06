@@ -1,11 +1,11 @@
 export const isMobile = (): boolean => {
   if (typeof window === 'undefined') return false;
-  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
 export const isIOS = (): boolean => {
   if (typeof window === 'undefined') return false;
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 };
 
 export const isAndroid = (): boolean => {

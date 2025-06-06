@@ -3,51 +3,65 @@ import { isMobile, isIOS } from '@/utils/device';
 // Deep links for different wallets
 export const WALLET_DEEP_LINKS = {
   talisman: {
-    deepLink: (returnUrl: string) => `talisman://connect?app=LemonadeV2&returnUrl=${encodeURIComponent(returnUrl)}`,
+    // Talisman uses a specific format for deep linking
+    deepLink: (returnUrl: string) => {
+      const params = new URLSearchParams({
+        app: 'LemonadeV2',
+        returnUrl: returnUrl,
+        action: 'connect',
+        network: 'polkadot'
+      });
+      return `talisman://connect?${params.toString()}`;
+    },
     appStore: 'https://apps.apple.com/us/app/talisman-wallet/id6443798348',
     playStore: 'https://play.google.com/store/apps/details?id=co.talisman.mobile'
   },
   subwallet: {
-    deepLink: (returnUrl: string) => `subwallet://connect?app=LemonadeV2&returnUrl=${encodeURIComponent(returnUrl)}`,
+    // SubWallet uses a different format for deep linking
+    deepLink: (returnUrl: string) => {
+      const params = new URLSearchParams({
+        app: 'LemonadeV2',
+        returnUrl: returnUrl,
+        action: 'connect',
+        network: 'polkadot',
+        dappUrl: window.location.origin
+      });
+      return `subwallet://connect?${params.toString()}`;
+    },
     appStore: 'https://apps.apple.com/us/app/subwallet/id1633050280',
     playStore: 'https://play.google.com/store/apps/details?id=app.subwallet.mobile'
   }
 };
 
-export const connectToMobileWallet = (walletType: 'talisman' | 'subwallet') => {
-  if (!isMobile()) return;
+export const connectToMobileWallet = async (walletType: 'talisman' | 'subwallet') => {
+  const currentUrl = window.location.href;
+  const returnUrl = encodeURIComponent(currentUrl);
 
-  const wallet = WALLET_DEEP_LINKS[walletType];
-  const startTime = Date.now();
-  
-  // Get the current URL to use as return URL
-  const returnUrl = window.location.href;
-  const deepLink = wallet.deepLink(returnUrl);
-
-  // For iOS, we need to handle the deep linking differently
-  if (isIOS()) {
-    // First try to open the app
+  if (walletType === 'talisman') {
+    const deepLink = `talisman://wc?app=lemonade&returnUrl=${returnUrl}&action=connect&network=volta`;
     window.location.href = deepLink;
 
-    // Wait longer on iOS before redirecting to app store
-    setTimeout(() => {
-      if (Date.now() - startTime < 2500) {
-        // Check if we're still on the same page
-        if (document.hidden) {
-          // App was opened successfully
-          return;
+    // For iOS, we need to handle the case where the app isn't installed
+    if (isIOS()) {
+      setTimeout(() => {
+        // If we're still on the same page after 2 seconds, the app probably isn't installed
+        if (document.visibilityState === 'visible') {
+          window.location.href = 'https://apps.apple.com/app/talisman-wallet/id1623455061';
         }
-        // If we're still here, the app didn't open
-        window.location.href = wallet.appStore;
-      }
-    }, 2000);
-  } else {
-    // For Android, use the original logic
+      }, 2000);
+    }
+  } else if (walletType === 'subwallet') {
+    const deepLink = `subwallet://wc?app=lemonade&returnUrl=${returnUrl}&action=connect&network=volta&dappUrl=${encodeURIComponent(window.location.origin)}`;
     window.location.href = deepLink;
-    setTimeout(() => {
-      if (Date.now() - startTime < 1500) {
-        window.location.href = wallet.playStore;
-      }
-    }, 1000);
+
+    // For iOS, we need to handle the case where the app isn't installed
+    if (isIOS()) {
+      setTimeout(() => {
+        // If we're still on the same page after 2 seconds, the app probably isn't installed
+        if (document.visibilityState === 'visible') {
+          window.location.href = 'https://apps.apple.com/app/subwallet/id1633059480';
+        }
+      }, 2000);
+    }
   }
 }; 
