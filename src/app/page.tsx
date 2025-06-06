@@ -43,7 +43,7 @@ export default function Home() {
   } | null>(null);
   
   const { selectedAccount, selectedWallet } = useAccount();
-  const { gameState, gameActions } = useLemonadeGame();
+  const [gameState, gameActions] = useLemonadeGame();
 
   const handleSimulateDay = () => {
     const result = gameActions.simulateDay();
