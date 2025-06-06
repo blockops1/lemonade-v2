@@ -1,10 +1,24 @@
 .walletButton {
     background-color: #4CAF50;
+    transition: background-color 0.3s ease;
 }
 
 .walletButton:hover {
     background-color: #3e8e41;
     color: #e6ffe6;
+}
+
+.walletButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.walletButton.error {
+    background-color: #f44336;
+}
+
+.walletButton.error:hover {
+    background-color: #d32f2f;
 }
 
 .mobileOptions {

@@ -3,12 +3,12 @@ import { isMobile, isIOS } from '@/utils/device';
 // Deep links for different wallets
 export const WALLET_DEEP_LINKS = {
   talisman: {
-    deepLink: 'talisman://connect?app=LemonadeV2',
+    deepLink: (returnUrl: string) => `talisman://connect?app=LemonadeV2&returnUrl=${encodeURIComponent(returnUrl)}`,
     appStore: 'https://apps.apple.com/us/app/talisman-wallet/id6443798348',
     playStore: 'https://play.google.com/store/apps/details?id=co.talisman.mobile'
   },
   subwallet: {
-    deepLink: 'subwallet://connect?app=LemonadeV2',
+    deepLink: (returnUrl: string) => `subwallet://connect?app=LemonadeV2&returnUrl=${encodeURIComponent(returnUrl)}`,
     appStore: 'https://apps.apple.com/us/app/subwallet/id1633050280',
     playStore: 'https://play.google.com/store/apps/details?id=app.subwallet.mobile'
   }
@@ -19,11 +19,15 @@ export const connectToMobileWallet = (walletType: 'talisman' | 'subwallet') => {
 
   const wallet = WALLET_DEEP_LINKS[walletType];
   const startTime = Date.now();
+  
+  // Get the current URL to use as return URL
+  const returnUrl = window.location.href;
+  const deepLink = wallet.deepLink(returnUrl);
 
   // For iOS, we need to handle the deep linking differently
   if (isIOS()) {
     // First try to open the app
-    window.location.href = wallet.deepLink;
+    window.location.href = deepLink;
 
     // Wait longer on iOS before redirecting to app store
     setTimeout(() => {
@@ -39,7 +43,7 @@ export const connectToMobileWallet = (walletType: 'talisman' | 'subwallet') => {
     }, 2000);
   } else {
     // For Android, use the original logic
-    window.location.href = wallet.deepLink;
+    window.location.href = deepLink;
     setTimeout(() => {
       if (Date.now() - startTime < 1500) {
         window.location.href = wallet.playStore;
