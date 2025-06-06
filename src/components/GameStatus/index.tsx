@@ -223,16 +223,18 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             {status && <p className={styles.status}>{status}</p>}
             
             <div className={styles.proofLinks}>
-              <a
-                href={proofUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.zkverifyLink}
-              >
-                <button className={styles.zkverifyButton}>
-                  View Proof on zkVerify
-                </button>
-              </a>
+              {proofUrl && (
+                <a
+                  href={proofUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.zkverifyLink}
+                >
+                  <button className={styles.zkverifyButton}>
+                    View Proof on zkVerify
+                  </button>
+                </a>
+              )}
               {eventData?.transactionHash && (
                 <a
                   href={`https://zkverify-testnet.subscan.io/extrinsic/${eventData.transactionHash}`}
@@ -246,7 +248,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
                 </a>
               )}
               <a
-                href={`/proof-decoder?extrinsic=${proofUrl.split('/').pop()}`}
+                href={proofUrl ? `/proof-decoder?extrinsic=${proofUrl.split('/').pop()}` : '/proof-decoder'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.decoderLink}
@@ -254,19 +256,6 @@ export const GameStatus: React.FC<GameStatusProps> = ({
                 <button className={styles.decoderButton}>
                   Decode Proof Details
                 </button>
-              </a>
-            </div>
-            <div className={styles.infoArea}>
-              <a
-                href={proofUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.proofUrlButton}
-              >
-                <div className={styles.proofUrlContent}>
-                  <span className={styles.proofUrlLabel}>Latest Proof:</span>
-                  <span className={styles.proofUrlValue}>{proofUrl}</span>
-                </div>
               </a>
             </div>
             <div className={styles.proofInfo}>
