@@ -8,6 +8,7 @@ import { useLemonadeGame } from '@/hooks/useLemonadeGame';
 import styles from './page.module.css';
 import Image from 'next/image';
 import WalletInstructions from "@/components/WalletInstructions";
+import { setGlobalProofUrl } from '@/utils/globalState';
 
 export default function Home() {
   const [lastResult, setLastResult] = useState<{
@@ -66,6 +67,7 @@ export default function Home() {
   const handleReset = () => {
     gameActions.resetGame();
     setLastResult(null);
+    setGlobalProofUrl(null);
   };
 
   const handleGenerateProof = async () => {

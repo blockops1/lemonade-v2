@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount } from '@/context/AccountContext';
 import { zkVerifySession, Library, CurveType, ZkVerifyEvents } from "zkverifyjs";
-import { setGlobalProofUrl } from '@/utils/globalState';
+import { setGlobalProofUrl, getGlobalProofUrl, subscribeToUrlChanges } from '@/utils/globalState';
 
 interface EventData {
     blockHash?: string;
@@ -37,6 +37,21 @@ export function useZkVerify() {
     const [eventData, setEventData] = useState<EventData | null>(null);
     const [transactionResult, setTransactionResult] = useState<TransactionResult | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    // Subscribe to proof URL changes
+    useEffect(() => {
+        const unsubscribe = subscribeToUrlChanges(() => {
+            const url = getGlobalProofUrl();
+            if (url === null) {
+                // Clear all state when proof URL is set to null
+                setStatus(null);
+                setEventData(null);
+                setTransactionResult(null);
+                setError(null);
+            }
+        });
+        return unsubscribe;
+    }, []);
 
     const onVerifyProof = async (
         proof: string,
@@ -113,18 +128,18 @@ export function useZkVerify() {
                 success: true,
                 ...result
             });
-            } catch (error: unknown) {
+        } catch (error) {
             console.error('Error during proof verification:', error);
             
             if (error instanceof Error && error.message.includes('Rejected by user')) {
-                    setError('Transaction Rejected By User.');
-                    setStatus('cancelled');
+                setError('Transaction Rejected By User.');
+                setStatus('cancelled');
                 setTransactionResult({
                     success: false,
                     error: 'Transaction Rejected By User.'
                 });
-                    return;
-                }
+                return;
+            }
 
             const errorMessage = error instanceof Error ? error.message : 'Failed to verify proof';
             setError(errorMessage);

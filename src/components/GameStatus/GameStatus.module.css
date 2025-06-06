@@ -191,6 +191,18 @@
   background-color: #5b4bc4;
 }
 
+.zkverifyButton:disabled,
+.decoderButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.zkverifyButton:disabled:hover,
+.decoderButton:disabled:hover {
+  background-color: #cccccc;
+}
+
 .decoderButton {
   background-color: #10b981;
   color: white;
