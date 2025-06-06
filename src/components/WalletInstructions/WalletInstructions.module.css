@@ -55,6 +55,7 @@
 .github {
   margin-top: 2rem;
   text-align: center;
+  padding: 0 1rem;
 }
 
 .github a {
@@ -64,6 +65,11 @@
   border: 2px solid #2c3e50;
   border-radius: 4px;
   transition: all 0.2s ease;
+  display: inline-block;
+  max-width: 100%;
+  word-wrap: break-word;
+  white-space: normal;
+  text-align: center;
 }
 
 .github a:hover {

@@ -180,7 +180,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
           >
             <span className={styles.adType}>No Advertising</span>
             <span className={styles.adCost}>Free</span>
-            <span className={styles.adEffect}>-20% Customers</span>
           </button>
           <button
             onClick={() => onSetAdvertising('flyers')}
@@ -189,7 +188,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
           >
             <span className={styles.adType}>Flyers</span>
             <span className={styles.adCost}>$9/day</span>
-            <span className={styles.adEffect}>+20% Customers</span>
           </button>
           <button
             onClick={() => onSetAdvertising('social')}
@@ -198,7 +196,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
           >
             <span className={styles.adType}>Social Media</span>
             <span className={styles.adCost}>$24/day</span>
-            <span className={styles.adEffect}>+80% Customers</span>
           </button>
           <button
             onClick={() => onSetAdvertising('radio')}
@@ -207,7 +204,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
           >
             <span className={styles.adType}>Radio</span>
             <span className={styles.adCost}>$45/day</span>
-            <span className={styles.adEffect}>+150% Customers</span>
           </button>
         </div>
       </div>

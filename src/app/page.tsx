@@ -95,7 +95,9 @@ export default function Home() {
               objectFit: 'cover', 
               objectPosition: 'center top',
               borderRadius: '8px',
-              maxHeight: '300px'
+              maxHeight: '300px',
+              width: '100%',
+              height: 'auto'
             }}
           />
 

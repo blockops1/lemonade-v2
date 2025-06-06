@@ -4,20 +4,14 @@ import dynamic from 'next/dynamic';
 import styles from './ConnectWalletButton.module.css';
 
 const WalletSelect = dynamic(() =>
-        import('@talismn/connect-components').then((mod) => mod.WalletSelect), {
-        ssr: false,
-    }
+    import('@talismn/connect-components').then((mod) => mod.WalletSelect), {
+    ssr: false,
+}
 );
 
 export interface ConnectWalletButtonHandle {
     openWalletModal: () => void;
     closeWalletModal: () => void;
-}
-
-interface Wallet {
-    extensionName: string;
-    title: string;
-    installUrl: string;
 }
 
 interface Account {
@@ -33,7 +27,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
     const handleWalletConnectOpen = () => setIsWalletSelectOpen(true);
     const handleWalletConnectClose = () => setIsWalletSelectOpen(false);
 
-    const handleWalletSelected = (wallet: Wallet) => {
+    const handleWalletSelected = (wallet: { extensionName: string }) => {
         setSelectedWallet(wallet.extensionName);
     };
 
@@ -62,7 +56,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
 
             {isWalletSelectOpen && (
                 <WalletSelect
-                    dappName="zkVerify"
+                    dappName="LemonadeV2"
                     open={isWalletSelectOpen}
                     onWalletConnectOpen={handleWalletConnectOpen}
                     onWalletConnectClose={handleWalletConnectClose}

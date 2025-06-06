@@ -154,7 +154,7 @@
 
 .advertisingOptions {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
   width: 100%;
   box-sizing: border-box;
@@ -166,14 +166,14 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 1rem;
+  padding: 0.75rem;
   border: 2px solid #ced4da;
   border-radius: 8px;
   background: white;
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.2s;
-  height: 100px;
+  min-height: 80px;
   text-align: center;
   box-sizing: border-box;
   position: relative;
@@ -194,7 +194,7 @@
 }
 
 .adButton.selected::before {
-  opacity: 1;
+  opacity: 0.1;
 }
 
 .adButton:hover:not(:disabled) {
@@ -205,23 +205,33 @@
 
 .adButton.selected {
   border-color: #0056b3;
+  background: #e6f0ff;
 }
 
 .adButton.selected:hover:not(:disabled) {
   border-color: #0056b3;
 }
 
-.adType, .adCost, .adEffect {
+.adType {
+  font-weight: 600;
+  font-size: 0.9rem;
   position: relative;
   z-index: 1;
-  width: 100%;
-  text-align: center;
 }
 
-.adButton.selected .adType,
-.adButton.selected .adCost,
-.adButton.selected .adEffect {
-  color: white;
+.adCost {
+  font-size: 0.8rem;
+  color: #666;
+  position: relative;
+  z-index: 1;
+}
+
+.adButton.selected .adType {
+  color: #0056b3;
+}
+
+.adButton.selected .adCost {
+  color: #0056b3;
 }
 
 .priceSelect {
@@ -237,4 +247,23 @@
 .priceSelect:disabled {
   background-color: #e9ecef;
   cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .advertisingOptions {
+    grid-template-columns: 1fr;
+  }
+  
+  .adButton {
+    min-height: 70px;
+    padding: 0.5rem;
+  }
+  
+  .adType {
+    font-size: 0.85rem;
+  }
+  
+  .adCost {
+    font-size: 0.75rem;
+  }
 } 

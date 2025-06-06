@@ -30,8 +30,29 @@
     padding: 1rem;
   }
 
+  .main {
+    gap: 1.5rem;
+  }
+
   .gameContainer {
     max-width: 100%;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 0.75rem;
+  }
+
+  .main {
+    gap: 1rem;
+  }
+
+  .gameContainer {
+    gap: 1rem;
+    margin-top: 1rem;
   }
 }
 
@@ -75,23 +96,13 @@
 
 .verifyButton {
   background-color: #0070f3;
-}
-
-.verifyButton:hover {
-  background-color: #005bb5;
-}
-
-.verifyButton {
   margin-bottom: 1.5rem;
   margin-top: 1.5rem;
   display: block;
 }
 
-.resultSuccess {
-  color: #28a745;
-  font-weight: bold;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
+.verifyButton:hover {
+  background-color: #005bb5;
 }
 
 .resultError {
