@@ -88,16 +88,17 @@ export default function Home() {
           <Image
             src="/lemonade2.jpg"
             alt="Lemonade Stand"
-            width={600}
+            width={800}
             height={400}
             priority
             style={{ 
               objectFit: 'cover', 
-              objectPosition: 'center top',
+              objectPosition: 'center 30%',
               borderRadius: '8px',
               maxHeight: '300px',
               width: '100%',
-              height: 'auto'
+              height: 'auto',
+              aspectRatio: '2/1'
             }}
           />
 

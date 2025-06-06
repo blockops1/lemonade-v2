@@ -2,8 +2,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
   padding: 2rem;
+  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
   background: #f0f2f5;
 }
 
@@ -13,7 +16,7 @@
   align-items: center;
   gap: 2rem;
   width: 100%;
-  max-width: 1200px;
+  max-width: 800px;
 }
 
 .gameContainer {
@@ -21,8 +24,6 @@
   flex-direction: column;
   gap: 2rem;
   width: 100%;
-  max-width: 800px;
-  margin-top: 2rem;
 }
 
 @media (max-width: 768px) {
@@ -35,9 +36,7 @@
   }
 
   .gameContainer {
-    max-width: 100%;
     gap: 1.5rem;
-    margin-top: 1.5rem;
   }
 }
 

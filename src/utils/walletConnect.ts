@@ -19,12 +19,31 @@ export const connectToMobileWallet = (walletType: 'talisman' | 'subwallet') => {
 
   const wallet = WALLET_DEEP_LINKS[walletType];
   const startTime = Date.now();
-  window.location.href = wallet.deepLink;
 
-  // If the app doesn't open within 1.5 seconds, redirect to app store
-  setTimeout(() => {
-    if (Date.now() - startTime < 1500) {
-      window.location.href = isIOS() ? wallet.appStore : wallet.playStore;
-    }
-  }, 1000);
+  // For iOS, we need to handle the deep linking differently
+  if (isIOS()) {
+    // First try to open the app
+    window.location.href = wallet.deepLink;
+
+    // Wait longer on iOS before redirecting to app store
+    setTimeout(() => {
+      if (Date.now() - startTime < 2500) {
+        // Check if we're still on the same page
+        if (document.hidden) {
+          // App was opened successfully
+          return;
+        }
+        // If we're still here, the app didn't open
+        window.location.href = wallet.appStore;
+      }
+    }, 2000);
+  } else {
+    // For Android, use the original logic
+    window.location.href = wallet.deepLink;
+    setTimeout(() => {
+      if (Date.now() - startTime < 1500) {
+        window.location.href = wallet.playStore;
+      }
+    }, 1000);
+  }
 }; 

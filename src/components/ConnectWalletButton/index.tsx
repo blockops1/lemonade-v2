@@ -1,4 +1,4 @@
-import React, { useState, forwardRef } from 'react';
+import React, { useState, forwardRef, useEffect } from 'react';
 import { useAccount } from '@/context/AccountContext';
 import dynamic from 'next/dynamic';
 import styles from './ConnectWalletButton.module.css';
@@ -26,6 +26,27 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
     const { selectedAccount, setSelectedAccount, setSelectedWallet } = useAccount();
     const [isWalletSelectOpen, setIsWalletSelectOpen] = useState(false);
     const [showMobileOptions, setShowMobileOptions] = useState(false);
+    const [isDeepLinking, setIsDeepLinking] = useState(false);
+
+    // Handle visibility change for deep linking
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'hidden') {
+                setIsDeepLinking(true);
+            } else if (document.visibilityState === 'visible' && isDeepLinking) {
+                // Reset deep linking state after a delay
+                setTimeout(() => {
+                    setIsDeepLinking(false);
+                    setShowMobileOptions(false);
+                }, 1000);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [isDeepLinking]);
 
     const handleWalletConnectOpen = () => {
         if (isMobile()) {
@@ -57,8 +78,8 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
     };
 
     const handleMobileWalletSelect = (walletType: 'talisman' | 'subwallet') => {
+        setIsDeepLinking(true);
         connectToMobileWallet(walletType);
-        setShowMobileOptions(false);
     };
 
     return (
@@ -66,10 +87,11 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
             <button
                 onClick={handleWalletConnectOpen}
                 className={`button ${styles.walletButton}`}
+                disabled={isDeepLinking}
             >
                 {selectedAccount
                     ? `Connected: ${selectedAccount.slice(0, 6)}...${selectedAccount.slice(-4)}`
-                    : 'Connect Wallet'}
+                    : isDeepLinking ? 'Opening Wallet...' : 'Connect Wallet'}
             </button>
 
             {isWalletSelectOpen && !isMobile() && (
@@ -85,7 +107,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
                 />
             )}
 
-            {showMobileOptions && (
+            {showMobileOptions && !isDeepLinking && (
                 <div className={styles.mobileOptions}>
                     <button onClick={() => handleMobileWalletSelect('talisman')}>
                         Connect with Talisman
