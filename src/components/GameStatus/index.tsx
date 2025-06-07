@@ -122,12 +122,6 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             <h3>Money</h3>
             <p>${(money / 10).toFixed(2)}</p>
           </div>
-          <div className={styles.weatherInfo}>
-            <div className={styles.weatherItem}>
-              <span className={styles.weatherLabel}>Weather:</span>
-              <span className={styles.weatherValue}>{weather}</span>
-            </div>
-          </div>
         </div>
         <div className={styles.actionButtons}>
           {proofUrl && (

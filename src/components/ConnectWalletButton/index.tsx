@@ -42,11 +42,13 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
             setSelectedAccount(accounts[0].address);
         } else {
             setSelectedAccount(null);
+            setIsWalletSelectOpen(true);
         }
     };
 
     const handleAccountSelected = (account: Account) => {
         setSelectedAccount(account.address);
+        setIsWalletSelectOpen(false);
     };
 
     return (

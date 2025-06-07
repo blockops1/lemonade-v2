@@ -218,6 +218,7 @@
   gap: 1rem;
   width: 100%;
   box-sizing: border-box;
+  margin-bottom: 1rem;
 }
 
 .adButton {
@@ -237,7 +238,7 @@
   text-align: center;
   box-sizing: border-box;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .adButton::before {
@@ -247,10 +248,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, #007bff, #0056b3);
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: 0;
+}
+
+.adButton.selected {
+  border-color: #007bff;
+  background: rgba(0, 123, 255, 0.1);
 }
 
 .adButton.selected::before {
@@ -260,13 +266,31 @@
 .adButton:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #4CAF50;
+  border-color: #007bff;
 }
 
-.adButton:disabled {
-  opacity: 0.7;
+.adButton.unavailable {
+  background: #f8f9fa;
+  border-color: #dee2e6;
   cursor: not-allowed;
+  position: relative;
+}
+
+.adButton.unavailable::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.05);
+  z-index: 1;
+}
+
+.adButton.unavailable:hover {
   transform: none;
+  box-shadow: none;
+  border-color: #dee2e6;
 }
 
 .adType {
@@ -285,7 +309,7 @@
 
 .adEffect {
   font-size: 0.8rem;
-  color: #4CAF50;
+  color: #007bff;
   position: relative;
   z-index: 1;
 }
@@ -294,4 +318,25 @@
 .adButton.selected .adCost,
 .adButton.selected .adEffect {
   color: #2c3e50;
+}
+
+.adButton.unavailable .adType,
+.adButton.unavailable .adCost,
+.adButton.unavailable .adEffect {
+  color: #adb5bd;
+}
+
+.unavailableLabel {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #dc3545;
+  font-weight: 500;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem;
+  border-top: 1px solid #dee2e6;
 } 

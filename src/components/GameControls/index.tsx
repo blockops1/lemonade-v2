@@ -193,31 +193,34 @@ export const GameControls: React.FC<GameControlsProps> = ({
             <span className={styles.adEffect}>-20% customers</span>
           </button>
           <button
-            className={`${styles.adButton} ${currentAdvertising.type === 'flyers' ? styles.selected : ''}`}
+            className={`${styles.adButton} ${currentAdvertising.type === 'flyers' ? styles.selected : ''} ${currentMoney < 90 ? styles.unavailable : ''}`}
             onClick={() => onSetAdvertising('flyers')}
-            disabled={disabled}
+            disabled={disabled || currentMoney < 90}
           >
             <span className={styles.adType}>Flyers</span>
             <span className={styles.adCost}>$9.00</span>
             <span className={styles.adEffect}>+20% customers</span>
+            {currentMoney < 90 && <span className={styles.unavailableLabel}>Not enough money</span>}
           </button>
           <button
-            className={`${styles.adButton} ${currentAdvertising.type === 'social' ? styles.selected : ''}`}
+            className={`${styles.adButton} ${currentAdvertising.type === 'social' ? styles.selected : ''} ${currentMoney < 240 ? styles.unavailable : ''}`}
             onClick={() => onSetAdvertising('social')}
-            disabled={disabled}
+            disabled={disabled || currentMoney < 240}
           >
             <span className={styles.adType}>Social Media</span>
             <span className={styles.adCost}>$24.00</span>
             <span className={styles.adEffect}>+80% customers</span>
+            {currentMoney < 240 && <span className={styles.unavailableLabel}>Not enough money</span>}
           </button>
           <button
-            className={`${styles.adButton} ${currentAdvertising.type === 'radio' ? styles.selected : ''}`}
+            className={`${styles.adButton} ${currentAdvertising.type === 'radio' ? styles.selected : ''} ${currentMoney < 450 ? styles.unavailable : ''}`}
             onClick={() => onSetAdvertising('radio')}
-            disabled={disabled}
+            disabled={disabled || currentMoney < 450}
           >
             <span className={styles.adType}>Radio</span>
             <span className={styles.adCost}>$45.00</span>
             <span className={styles.adEffect}>+150% customers</span>
+            {currentMoney < 450 && <span className={styles.unavailableLabel}>Not enough money</span>}
           </button>
         </div>
       </div>

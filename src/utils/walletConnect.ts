@@ -36,7 +36,9 @@ export async function connectTalismanWallet() {
     console.log('Available accounts:', allAccounts);
 
     if (allAccounts.length === 0) {
-      throw new Error('No accounts found. Please create an account in Talisman wallet.');
+      // Instead of throwing an error, return null to indicate no account is selected
+      console.log('No accounts found. User needs to log in to Talisman wallet.');
+      return null;
     }
 
     // Get the first account
@@ -54,7 +56,8 @@ export async function connectTalismanWallet() {
     };
   } catch (error) {
     console.error('Error connecting to Talisman wallet:', error);
-    throw error;
+    // Instead of throwing, return null to indicate connection failed
+    return null;
   }
 }
 
