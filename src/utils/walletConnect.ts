@@ -1,11 +1,134 @@
 import { isMobile, isIOS } from '@/utils/device';
-import { getWallets } from '@talismn/connect-wallets';
+import { getWallets, Wallet } from '@talismn/connect-wallets';
 
 // Network configuration
 const NETWORK_CONFIG = {
   name: 'zkVerify Testnet',
   rpcUrl: 'wss://testnet-rpc.zkverify.io',
   explorerUrl: 'https://zkverify-testnet.subscan.io/'
+};
+
+// Helper function for logging
+const logWithSeparator = (title: string, data: any) => {
+  console.log('\n' + '='.repeat(50));
+  console.log(`=== ${title} ===`);
+  console.log('='.repeat(50));
+  console.log(data);
+  console.log('='.repeat(50) + '\n');
+};
+
+// Initialize Talisman SDK
+const initializeTalismanSDK = async () => {
+  logWithSeparator('INITIALIZING TALISMAN SDK', {
+    networkConfig: NETWORK_CONFIG
+  });
+
+  try {
+    const wallets = getWallets();
+    logWithSeparator('TALISMAN SDK INITIALIZED', {
+      availableWallets: wallets.map(w => ({
+        name: w.extensionName,
+        installed: w.installed
+      })),
+      networkConfig: NETWORK_CONFIG
+    });
+    return wallets;
+  } catch (error: any) {
+    logWithSeparator('TALISMAN SDK INITIALIZATION ERROR', {
+      error: {
+        name: error?.name,
+        message: error?.message,
+        stack: error?.stack
+      },
+      networkConfig: NETWORK_CONFIG
+    });
+    throw error;
+  }
+};
+
+// Connect to wallet using Talisman SDK
+export const connectToWallet = async (walletType: 'talisman' | 'subwallet') => {
+  logWithSeparator('WALLET CONNECTION STARTED', {
+    walletType,
+    isMobile: isMobile(),
+    isIOS: isIOS(),
+    userAgent: navigator.userAgent,
+    networkConfig: NETWORK_CONFIG
+  });
+
+  try {
+    // Initialize SDK and get available wallets
+    const wallets = await initializeTalismanSDK();
+    const wallet = wallets.find(w => w.extensionName === walletType);
+    
+    logWithSeparator('WALLET STATUS', {
+      found: !!wallet,
+      details: wallet ? {
+        name: wallet.extensionName,
+        installed: wallet.installed
+      } : 'Not found',
+      networkConfig: NETWORK_CONFIG
+    });
+
+    if (!wallet) {
+      throw new Error(`${walletType} wallet not found`);
+    }
+
+    // Enable the wallet
+    logWithSeparator('ENABLING WALLET', {
+      walletType,
+      networkConfig: NETWORK_CONFIG
+    });
+
+    await wallet.enable('LemonadeV2');
+
+    // Get accounts
+    logWithSeparator('GETTING ACCOUNTS', {
+      walletType,
+      networkConfig: NETWORK_CONFIG
+    });
+
+    const accounts = await wallet.getAccounts();
+    
+    logWithSeparator('ACCOUNTS RETRIEVED', {
+      accounts: accounts.map(acc => ({
+        address: acc.address,
+        name: acc.name,
+        source: acc.source,
+        network: NETWORK_CONFIG.name
+      })),
+      networkConfig: NETWORK_CONFIG
+    });
+
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No accounts found');
+    }
+
+    // Return the first account
+    logWithSeparator('CONNECTION SUCCESSFUL', {
+      address: accounts[0].address,
+      network: NETWORK_CONFIG.name,
+      networkConfig: NETWORK_CONFIG
+    });
+
+    return {
+      address: accounts[0].address,
+      wallet: walletType,
+      network: NETWORK_CONFIG.name
+    };
+
+  } catch (error: any) {
+    logWithSeparator('CONNECTION ERROR', {
+      error: {
+        name: error?.name,
+        message: error?.message,
+        stack: error?.stack
+      },
+      walletType,
+      networkConfig: NETWORK_CONFIG
+    });
+    throw error;
+  }
 };
 
 // Deep links for different wallets
@@ -19,12 +142,13 @@ export const WALLET_DEEP_LINKS = {
         network: NETWORK_CONFIG.name
       });
       const link = `talisman://wc?${params.toString()}`;
-      console.log('Talisman deep link params:', {
+      logWithSeparator('TALISMAN DEEP LINK CONSTRUCTION', {
         app: 'LemonadeV2',
         returnUrl: returnUrl,
         network: NETWORK_CONFIG.name,
         encodedParams: params.toString(),
-        finalLink: link
+        finalLink: link,
+        networkConfig: NETWORK_CONFIG
       });
       return link;
     },
@@ -35,13 +159,16 @@ export const WALLET_DEEP_LINKS = {
     // SubWallet uses a different format for deep linking
     deepLink: (returnUrl: string) => {
       // Log the raw parameters before encoding
-      console.log('SubWallet deep link raw params:', {
-        dappUrl: window.location.origin,
-        returnUrl: returnUrl,
-        action: 'connect',
-        network: NETWORK_CONFIG.name,
-        rpcUrl: NETWORK_CONFIG.rpcUrl,
-        explorerUrl: NETWORK_CONFIG.explorerUrl
+      logWithSeparator('SUBWALLET DEEP LINK CONSTRUCTION', {
+        rawParams: {
+          dappUrl: window.location.origin,
+          returnUrl: returnUrl,
+          action: 'connect',
+          network: NETWORK_CONFIG.name,
+          rpcUrl: NETWORK_CONFIG.rpcUrl,
+          explorerUrl: NETWORK_CONFIG.explorerUrl
+        },
+        networkConfig: NETWORK_CONFIG
       });
 
       // Use URLSearchParams to handle encoding properly
@@ -54,14 +181,17 @@ export const WALLET_DEEP_LINKS = {
       params.append('explorerUrl', NETWORK_CONFIG.explorerUrl);
 
       const link = `subwallet://wc?${params.toString()}`;
-      console.log('SubWallet deep link encoded params:', {
-        dappUrl: window.location.origin,
-        returnUrl: returnUrl,
-        network: NETWORK_CONFIG.name,
-        rpcUrl: NETWORK_CONFIG.rpcUrl,
-        explorerUrl: NETWORK_CONFIG.explorerUrl,
-        encodedParams: params.toString(),
-        finalLink: link
+      logWithSeparator('SUBWALLET DEEP LINK ENCODED', {
+        encodedParams: {
+          dappUrl: window.location.origin,
+          returnUrl: returnUrl,
+          network: NETWORK_CONFIG.name,
+          rpcUrl: NETWORK_CONFIG.rpcUrl,
+          explorerUrl: NETWORK_CONFIG.explorerUrl
+        },
+        finalEncodedParams: params.toString(),
+        finalLink: link,
+        networkConfig: NETWORK_CONFIG
       });
       return link;
     },
@@ -71,7 +201,7 @@ export const WALLET_DEEP_LINKS = {
 };
 
 export const connectToMobileWallet = async (walletType: 'talisman' | 'subwallet') => {
-  console.log('Starting mobile wallet connection:', { 
+  logWithSeparator('WALLET CONNECTION STARTED', {
     walletType,
     isMobile: isMobile(),
     isIOS: isIOS(),
@@ -83,7 +213,7 @@ export const connectToMobileWallet = async (walletType: 'talisman' | 'subwallet'
   const currentUrl = window.location.href;
   // Don't encode the return URL here, let the deep link function handle it
   const returnUrl = currentUrl;
-  console.log('URL details:', {
+  logWithSeparator('URL CONFIGURATION', {
     currentUrl,
     returnUrl,
     origin: window.location.origin,
@@ -94,97 +224,141 @@ export const connectToMobileWallet = async (walletType: 'talisman' | 'subwallet'
 
   // Check for any existing URL parameters that might indicate a return from wallet
   const urlParams = new URLSearchParams(window.location.search);
-  console.log('Current URL parameters:', {
+  logWithSeparator('URL PARAMETERS', {
     status: urlParams.get('status'),
     address: urlParams.get('address'),
     wallet: urlParams.get('wallet'),
     network: urlParams.get('network'),
-    allParams: Object.fromEntries(urlParams.entries())
+    allParams: Object.fromEntries(urlParams.entries()),
+    expectedNetwork: NETWORK_CONFIG.name
   });
 
   if (walletType === 'talisman') {
-    // Use Talisman's official SDK for mobile connection
-    console.log('Initializing Talisman SDK...');
     try {
-      const wallets = getWallets();
-      console.log('SDK initialization successful');
-      console.log('Available wallets:', wallets.map(w => ({
-        name: w.extensionName,
-        installed: w.installed
-      })));
-      
+      // Initialize SDK and get available wallets
+      const wallets = await initializeTalismanSDK();
       const talismanWallet = wallets.find(wallet => wallet.extensionName === 'talisman');
-      console.log('Talisman wallet details:', talismanWallet ? {
-        name: talismanWallet.extensionName,
-        installed: talismanWallet.installed
-      } : 'Not found');
+      
+      logWithSeparator('TALISMAN WALLET STATUS', {
+        found: !!talismanWallet,
+        details: talismanWallet ? {
+          name: talismanWallet.extensionName,
+          installed: talismanWallet.installed
+        } : 'Not found',
+        networkConfig: NETWORK_CONFIG
+      });
       
       if (talismanWallet) {
         try {
-          console.log('Attempting to enable Talisman wallet...');
+          logWithSeparator('TALISMAN WALLET ENABLING', {
+            networkConfig: NETWORK_CONFIG
+          });
+          
+          // Enable the wallet with the correct network
           await talismanWallet.enable('LemonadeV2');
-          console.log('Talisman wallet enabled, getting accounts...');
+          
+          logWithSeparator('TALISMAN WALLET ENABLED', {
+            networkConfig: NETWORK_CONFIG
+          });
+          
+          // Get accounts with network information
           const accounts = await talismanWallet.getAccounts();
-          console.log('Talisman accounts:', accounts);
+          logWithSeparator('TALISMAN ACCOUNTS', {
+            accounts: accounts.map(acc => ({
+              address: acc.address,
+              name: acc.name,
+              source: acc.source,
+              network: NETWORK_CONFIG.name
+            })),
+            networkConfig: NETWORK_CONFIG
+          });
           
           if (accounts && accounts.length > 0) {
-            console.log('Connected to Talisman:', accounts[0].address);
+            logWithSeparator('TALISMAN CONNECTION SUCCESSFUL', {
+              address: accounts[0].address,
+              network: NETWORK_CONFIG.name,
+              networkConfig: NETWORK_CONFIG
+            });
             return accounts[0].address;
           }
         } catch (error: any) {
-          console.error('Error connecting to Talisman:', error);
-          console.log('Error details:', {
-            name: error?.name,
-            message: error?.message,
-            stack: error?.stack
+          logWithSeparator('TALISMAN CONNECTION ERROR', {
+            error: {
+              name: error?.name,
+              message: error?.message,
+              stack: error?.stack
+            },
+            networkConfig: NETWORK_CONFIG
           });
           // Fallback to deep linking if SDK fails
           const deepLink = WALLET_DEEP_LINKS.talisman.deepLink(returnUrl);
-          console.log('Falling back to deep link:', deepLink);
+          logWithSeparator('TALISMAN FALLBACK TO DEEP LINK', {
+            deepLink,
+            networkConfig: NETWORK_CONFIG
+          });
           window.location.href = deepLink;
         }
       } else {
         // Fallback to deep linking if wallet not found
         const deepLink = WALLET_DEEP_LINKS.talisman.deepLink(returnUrl);
-        console.log('Wallet not found, using deep link:', deepLink);
+        logWithSeparator('TALISMAN WALLET NOT FOUND - USING DEEP LINK', {
+          deepLink,
+          networkConfig: NETWORK_CONFIG
+        });
         window.location.href = deepLink;
       }
     } catch (error: any) {
-      console.error('Error initializing Talisman SDK:', error);
-      console.log('Error details:', {
-        name: error?.name,
-        message: error?.message,
-        stack: error?.stack
+      logWithSeparator('TALISMAN SDK INITIALIZATION ERROR', {
+        error: {
+          name: error?.name,
+          message: error?.message,
+          stack: error?.stack
+        },
+        networkConfig: NETWORK_CONFIG
       });
       // Fallback to deep linking if SDK initialization fails
       const deepLink = WALLET_DEEP_LINKS.talisman.deepLink(returnUrl);
-      console.log('SDK initialization failed, using deep link:', deepLink);
+      logWithSeparator('TALISMAN SDK INITIALIZATION FAILED - USING DEEP LINK', {
+        deepLink,
+        networkConfig: NETWORK_CONFIG
+      });
       window.location.href = deepLink;
     }
 
     // For iOS, we need to handle the case where the app isn't installed
     if (isIOS()) {
-      console.log('iOS device detected, setting up app store fallback');
+      logWithSeparator('IOS DEVICE DETECTED', {
+        networkConfig: NETWORK_CONFIG
+      });
       setTimeout(() => {
         // If we're still on the same page after 2 seconds, the app probably isn't installed
         if (document.visibilityState === 'visible') {
-          console.log('App not detected, redirecting to App Store');
+          logWithSeparator('TALISMAN APP NOT DETECTED - REDIRECTING TO APP STORE', {
+            networkConfig: NETWORK_CONFIG
+          });
           window.location.href = WALLET_DEEP_LINKS.talisman.appStore;
         }
       }, 2000);
     }
   } else if (walletType === 'subwallet') {
     const deepLink = WALLET_DEEP_LINKS.subwallet.deepLink(returnUrl);
-    console.log('SubWallet deep link:', deepLink);
+    logWithSeparator('SUBWALLET CONNECTION ATTEMPT', {
+      deepLink,
+      networkConfig: NETWORK_CONFIG
+    });
     window.location.href = deepLink;
 
     // For iOS, we need to handle the case where the app isn't installed
     if (isIOS()) {
-      console.log('iOS device detected, setting up app store fallback');
+      logWithSeparator('IOS DEVICE DETECTED', {
+        networkConfig: NETWORK_CONFIG
+      });
       setTimeout(() => {
         // If we're still on the same page after 2 seconds, the app probably isn't installed
         if (document.visibilityState === 'visible') {
-          console.log('App not detected, redirecting to App Store');
+          logWithSeparator('SUBWALLET APP NOT DETECTED - REDIRECTING TO APP STORE', {
+            networkConfig: NETWORK_CONFIG
+          });
           window.location.href = WALLET_DEEP_LINKS.subwallet.appStore;
         }
       }, 2000);
