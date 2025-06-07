@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import styles from './GameControls.module.css';
+import ingredientStyles from './ingredients.module.css';
+import { IngredientIcon } from './IngredientIcons';
 
 interface GameControlsProps {
   onBuyIngredients: (item: 'lemons' | 'sugar' | 'ice', quantity: number) => boolean;
@@ -37,22 +39,13 @@ export const GameControls: React.FC<GameControlsProps> = ({
     sugar: '',
     ice: ''
   });
-  const [price, setPrice] = useState(3.00);  // Start at $3.00
+  const [price, setPrice] = useState(3.00);
 
   const PRICE_OPTIONS = [
-    0.50,  // 5 units - lowest price
-    1.00,  // 10 units
-    2.00,  // 20 units
-    2.50,  // 25 units
-    3.00,  // 30 units (default)
-    3.50,  // 35 units
-    4.00,  // 40 units
-    5.00,  // 50 units
-    6.00   // 60 units - highest price
+    0.50, 1.00, 2.00, 2.50, 3.00, 3.50, 4.00, 5.00, 6.00
   ];
 
   const handleQuantityChange = (item: 'lemons' | 'sugar' | 'ice', value: string) => {
-    // Allow any input, including empty string
     setQuantities(prev => ({
       ...prev,
       [item]: value
@@ -63,7 +56,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
     const quantity = parseInt(quantities[item]) || 0;
     if (quantity > 0) {
       const success = onBuyIngredients(item, quantity);
-      // Only clear the input if the purchase failed
       if (!success) {
         setQuantities(prev => ({
           ...prev,
@@ -89,9 +81,13 @@ export const GameControls: React.FC<GameControlsProps> = ({
         <h3>Buy Ingredients</h3>
         <p>Available Money: ${(currentMoney / 10).toFixed(2)}</p>
         
-        <div className={styles.ingredientControl}>
-          <label>
-            Lemons ($0.50 each):
+        <div className={ingredientStyles.ingredientControl}>
+          <div className={ingredientStyles.ingredientLabel}>
+            <IngredientIcon type="lemon" />
+            <span>Lemons</span>
+            <span className={ingredientStyles.ingredientPrice}>($0.50 each)</span>
+          </div>
+          <div className={ingredientStyles.ingredientQuantity}>
             <input
               type="text"
               inputMode="numeric"
@@ -99,19 +95,25 @@ export const GameControls: React.FC<GameControlsProps> = ({
               value={quantities.lemons}
               onChange={(e) => handleQuantityChange('lemons', e.target.value)}
               disabled={disabled}
+              className={ingredientStyles.ingredientInput}
             />
-          </label>
-          <button 
-            onClick={() => handleBuy('lemons')}
-            disabled={disabled || !quantities.lemons || parseInt(quantities.lemons) === 0}
-          >
-            Buy Lemons
-          </button>
+            <button 
+              onClick={() => handleBuy('lemons')}
+              disabled={disabled || !quantities.lemons || parseInt(quantities.lemons) === 0}
+              className={ingredientStyles.ingredientButton}
+            >
+              Buy
+            </button>
+          </div>
         </div>
 
-        <div className={styles.ingredientControl}>
-          <label>
-            Sugar ($0.30 each):
+        <div className={ingredientStyles.ingredientControl}>
+          <div className={ingredientStyles.ingredientLabel}>
+            <IngredientIcon type="sugar" />
+            <span>Sugar</span>
+            <span className={ingredientStyles.ingredientPrice}>($0.30 each)</span>
+          </div>
+          <div className={ingredientStyles.ingredientQuantity}>
             <input
               type="text"
               inputMode="numeric"
@@ -119,19 +121,25 @@ export const GameControls: React.FC<GameControlsProps> = ({
               value={quantities.sugar}
               onChange={(e) => handleQuantityChange('sugar', e.target.value)}
               disabled={disabled}
+              className={ingredientStyles.ingredientInput}
             />
-          </label>
-          <button 
-            onClick={() => handleBuy('sugar')}
-            disabled={disabled || !quantities.sugar || parseInt(quantities.sugar) === 0}
-          >
-            Buy Sugar
-          </button>
+            <button 
+              onClick={() => handleBuy('sugar')}
+              disabled={disabled || !quantities.sugar || parseInt(quantities.sugar) === 0}
+              className={ingredientStyles.ingredientButton}
+            >
+              Buy
+            </button>
+          </div>
         </div>
 
-        <div className={styles.ingredientControl}>
-          <label>
-            Ice ($0.20 each):
+        <div className={ingredientStyles.ingredientControl}>
+          <div className={ingredientStyles.ingredientLabel}>
+            <IngredientIcon type="ice" />
+            <span>Ice</span>
+            <span className={ingredientStyles.ingredientPrice}>($0.20 each)</span>
+          </div>
+          <div className={ingredientStyles.ingredientQuantity}>
             <input
               type="text"
               inputMode="numeric"
@@ -139,14 +147,16 @@ export const GameControls: React.FC<GameControlsProps> = ({
               value={quantities.ice}
               onChange={(e) => handleQuantityChange('ice', e.target.value)}
               disabled={disabled}
+              className={ingredientStyles.ingredientInput}
             />
-          </label>
-          <button 
-            onClick={() => handleBuy('ice')}
-            disabled={disabled || !quantities.ice || parseInt(quantities.ice) === 0}
-          >
-            Buy Ice
-          </button>
+            <button 
+              onClick={() => handleBuy('ice')}
+              disabled={disabled || !quantities.ice || parseInt(quantities.ice) === 0}
+              className={ingredientStyles.ingredientButton}
+            >
+              Buy
+            </button>
+          </div>
         </div>
       </div>
 
@@ -170,44 +180,44 @@ export const GameControls: React.FC<GameControlsProps> = ({
       </div>
 
       <div className={styles.advertising}>
-        <h3>Advertising Strategy</h3>
-        <p>Current: {currentAdvertising.type} (Cost: ${(currentAdvertising.cost / 10).toFixed(2)}, Customer Multiplier: {currentAdvertising.multiplier}x)</p>
+        <h3>Advertising</h3>
+        <p>Choose your advertising strategy:</p>
         <div className={styles.advertisingOptions}>
           <button
+            className={`${styles.adButton} ${currentAdvertising.type === 'none' ? styles.selected : ''}`}
             onClick={() => onSetAdvertising('none')}
             disabled={disabled}
-            className={`${styles.adButton} ${currentAdvertising.type === 'none' ? styles.selected : ''}`}
           >
-            <span className={styles.adType}>No Advertising</span>
-            <span className={styles.adCost}>Free</span>
-            <span className={styles.adEffect}>-20% Customers</span>
+            <span className={styles.adType}>No Ads</span>
+            <span className={styles.adCost}>$0.00</span>
+            <span className={styles.adEffect}>-20% customers</span>
           </button>
           <button
-            onClick={() => onSetAdvertising('flyers')}
-            disabled={disabled || currentMoney < 90}
             className={`${styles.adButton} ${currentAdvertising.type === 'flyers' ? styles.selected : ''}`}
+            onClick={() => onSetAdvertising('flyers')}
+            disabled={disabled}
           >
             <span className={styles.adType}>Flyers</span>
-            <span className={styles.adCost}>$9/day</span>
-            <span className={styles.adEffect}>+20% Customers</span>
+            <span className={styles.adCost}>$9.00</span>
+            <span className={styles.adEffect}>+20% customers</span>
           </button>
           <button
-            onClick={() => onSetAdvertising('social')}
-            disabled={disabled || currentMoney < 240}
             className={`${styles.adButton} ${currentAdvertising.type === 'social' ? styles.selected : ''}`}
+            onClick={() => onSetAdvertising('social')}
+            disabled={disabled}
           >
             <span className={styles.adType}>Social Media</span>
-            <span className={styles.adCost}>$24/day</span>
-            <span className={styles.adEffect}>+80% Customers</span>
+            <span className={styles.adCost}>$24.00</span>
+            <span className={styles.adEffect}>+80% customers</span>
           </button>
           <button
-            onClick={() => onSetAdvertising('radio')}
-            disabled={disabled || currentMoney < 450}
             className={`${styles.adButton} ${currentAdvertising.type === 'radio' ? styles.selected : ''}`}
+            onClick={() => onSetAdvertising('radio')}
+            disabled={disabled}
           >
             <span className={styles.adType}>Radio</span>
-            <span className={styles.adCost}>$45/day</span>
-            <span className={styles.adEffect}>+150% Customers</span>
+            <span className={styles.adCost}>$45.00</span>
+            <span className={styles.adEffect}>+150% customers</span>
           </button>
         </div>
       </div>
@@ -215,9 +225,9 @@ export const GameControls: React.FC<GameControlsProps> = ({
       <button
         className={styles.simulateButton}
         onClick={onSimulateDay}
-        disabled={disabled || (inventory.lemons === 0 && inventory.sugar === 0 && inventory.ice === 0)}
+        disabled={disabled}
       >
-        Start Day
+        Simulate Day
       </button>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styles from './GameStatus.module.css';
 import { useGameProof } from '../../hooks/useGameProof';
 import { useProofUrl } from '@/hooks/useProofUrl';
+import Link from 'next/link';
 
 interface GameStatusProps {
   day: number;
@@ -78,14 +79,31 @@ export const GameStatus: React.FC<GameStatusProps> = ({
   const proofUrl = useProofUrl();
 
   const handleGenerateProof = async () => {
+    console.log('\n=== STARTING PROOF GENERATION FROM GAME STATUS ===');
+    console.log('Game state:', {
+      day,
+      money,
+      inventory,
+      weather,
+      gameOver: lastResult?.gameOver,
+      finalScore: lastResult?.finalScore
+    });
+
     if (!lastResult?.gameOver || !lastResult.finalScore) {
+      console.error('Cannot generate proof: Game is not over or no final score');
       setProofError('Cannot generate proof before game is over');
       return;
     }
 
+    console.log('Calling onGenerateProof...');
     const result = await onGenerateProof();
+    console.log('onGenerateProof result:', result);
+
     if (!result.success) {
+      console.error('Proof generation failed:', result.error);
       setProofError(result.error || 'Failed to generate proof');
+    } else {
+      console.log('Proof generated successfully');
     }
   };
 
@@ -111,12 +129,16 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             </div>
           </div>
         </div>
-        <button 
-          onClick={onReset}
-          className={styles.resetButton}
+        <div className={styles.actionButtons}>
+          {proofUrl && (
+            <Link 
+              href={`/proof-decoder?extrinsic=${proofUrl.split('/').pop()}`}
+              className={styles.proofButton}
         >
-          Reset Game
-        </button>
+              View Proof
+            </Link>
+          )}
+        </div>
       </div>
 
       {lastResult && (
@@ -187,7 +209,13 @@ export const GameStatus: React.FC<GameStatusProps> = ({
       )}
 
       <div className={styles.inventory}>
+        <div className={styles.inventoryHeader}>
         <h3>Inventory</h3>
+          <div className={styles.weatherInfo}>
+            <span className={styles.weatherLabel}>Weather:</span>
+            <span className={styles.weatherValue}>{weather}</span>
+          </div>
+        </div>
         <div className={styles.inventoryGrid}>
           <div className={styles.inventoryItem}>
             <span>Lemons:</span>

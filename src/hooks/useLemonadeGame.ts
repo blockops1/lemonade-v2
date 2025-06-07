@@ -146,221 +146,41 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       });
 
       console.log('\n=== CONVERTING TO CIRCUIT FORMAT ===');
-      
-      type DailyState = [number, number, number, number]; // [money, lemons, sugar, ice]
-      const dailyStates: DailyState[] = [];
+      // Convert sales history to circuit input format
+      const dailyStates = sortedHistory.map(day => [
+        day.revenue, // money
+        day.lemonsUsed, // lemons
+        day.sugarUsed, // sugar
+        day.iceUsed // ice
+      ]);
 
-      // Calculate states iteratively instead of using map
-      let prevMoney = 1200; // Use the correct initial money value (1200 = $120.00 in 10-cent units)
-      let prevLemons = 0;   // Start with 0 used ingredients
-      let prevSugar = 0;    // Start with 0 used ingredients
-      let prevIce = 0;      // Start with 0 used ingredients
-      
-      for (let index = 0; index < sortedHistory.length; index++) {
-        const day = sortedHistory[index];
-        
-        // Revenue and costs are already in 10-cent units
-        const revenueInTens = day.revenue;
-        const adCostInTens = day.advertisingCost;
-        
-        // Calculate total costs for this day
-        const totalCosts = adCostInTens;  // Only include advertising cost here
-                                         // Ingredient costs were already paid when buying
-
-        // Check if player has enough money
-        if (prevMoney < totalCosts) {
-          throw new Error(`Not enough money on day ${day.day}: Need ${totalCosts} 10-cent units but only have ${prevMoney} 10-cent units`);
-        }
-
-        // Calculate current money according to circuit validation
-        const currMoney = prevMoney + revenueInTens - totalCosts;
-
-        // Verify money is non-negative and within circuit bounds
-        if (currMoney < 0) {
-          throw new Error(`Money cannot be negative on day ${day.day}: ${currMoney}`);
-        }
-        if (currMoney > 32767) { // 15-bit limit (2^15 - 1)
-          throw new Error(`Money value ${currMoney} exceeds circuit's 15-bit limit on day ${day.day}`);
-        }
-
-        // Calculate accumulated used ingredients
-        const totalLemonsUsed = prevLemons + day.lemonsUsed;
-        const totalSugarUsed = prevSugar + day.sugarUsed;
-        const totalIceUsed = prevIce + day.iceUsed + day.iceMelted;
-
-        dailyStates.push([
-          currMoney,
-          totalLemonsUsed,
-          totalSugarUsed,
-          totalIceUsed
-        ]);
-
-        console.log(`\nProcessing state for Day ${day.day}:`, {
-          revenueInTens,
-          adCostInTens,
-          prevMoney,
-          currMoney,
-          lemonsUsed: day.lemonsUsed,
-          sugarUsed: day.sugarUsed,
-          iceUsed: day.iceUsed,
-          iceMelted: day.iceMelted,
-          revenue: day.revenue,
-          advertisingCost: day.advertisingCost,
-          totalLemonsUsed,
-          totalSugarUsed,
-          totalIceUsed,
-          prevLemons,
-          prevSugar,
-          prevIce
-        });
-
-        // Update previous state for next iteration
-        prevMoney = currMoney;
-        prevLemons = totalLemonsUsed;
-        prevSugar = totalSugarUsed;
-        prevIce = totalIceUsed;
-      }
-
-      console.log('\nDaily States:', JSON.stringify(dailyStates, null, 2));
-
-      const dailyRecipes = sortedHistory.map(day => {
-        console.log(`\nProcessing recipe for Day ${day.day}:`, {
-          recipe: day.recipe,
-          hasRecipe: !!day.recipe,
-          recipeType: typeof day.recipe,
-          recipeKeys: day.recipe ? Object.keys(day.recipe) : 'no recipe',
-          lemonsPerCup: day.recipe?.lemonsPerCup,
-          sugarPerCup: day.recipe?.sugarPerCup,
-          icePerCup: day.recipe?.icePerCup
-        });
-        
-        if (!day.recipe) {
-          throw new Error(`Missing recipe for day ${day.day}`);
-        }
-
-        // Validate recipe against circuit constraints
-        if (day.recipe.lemonsPerCup < 2 || day.recipe.lemonsPerCup > 6) {
-          throw new Error(`Invalid recipe on day ${day.day}: Lemons must be between 2-6 per cup`);
-        }
-        if (day.recipe.sugarPerCup < 1 || day.recipe.sugarPerCup > 3) {
-          throw new Error(`Invalid recipe on day ${day.day}: Sugar must be between 1-3 per cup`);
-        }
-        if (day.recipe.icePerCup < 3 || day.recipe.icePerCup > 9) {
-          throw new Error(`Invalid recipe on day ${day.day}: Ice must be between 3-9 per cup`);
-        }
-
-        return [
+      const dailyRecipes = sortedHistory.map(day => [
           day.recipe.lemonsPerCup,
           day.recipe.sugarPerCup,
           day.recipe.icePerCup
-        ];
-      });
+      ]);
 
-      console.log('\nDaily Recipes:', JSON.stringify(dailyRecipes, null, 2));
-
-      const dailyPrices = sortedHistory.map(day => {
-        // Price is already in 10-cent units
-        const priceInTens = day.price;
-        if (priceInTens <= 0) {
-          throw new Error(`Invalid price on day ${day.day}: Must be greater than 0`);
-        }
-        if (priceInTens % 1 !== 0) {
-          throw new Error(`Invalid price on day ${day.day}: Must be a whole number`);
-        }
-        return priceInTens;
-      });
-
-      console.log('\nDaily Prices (in 10-cent increments):', JSON.stringify(dailyPrices, null, 2));
-
-      const dailyWeather = sortedHistory.map(day => {
-        // Convert weather string to circuit value
+      const dailyPrices = sortedHistory.map(day => day.price);
+      
+      // Convert weather strings to numbers
         const weatherMap: { [key: string]: number } = {
-          'rainy': 0,    // Circuit: 0=rainy
-          'cloudy': 1,   // Circuit: 1=cloudy
-          'sunny': 2,    // Circuit: 2=sunny
-          'hot': 3       // Circuit: 3=hot
+        'Sunny': 0,
+        'Hot': 1,
+        'Cloudy': 2,
+        'Rainy': 3
         };
-        const weatherValue = weatherMap[day.weather.toLowerCase()];  // Convert to lowercase to match game state
-        if (weatherValue === undefined) {
-          throw new Error(`Invalid weather on day ${day.day}: ${day.weather}`);
-        }
-        console.log(`Weather for day ${day.day}: ${day.weather.toLowerCase()} -> ${weatherValue}`);
-        return weatherValue;
-      });
+      const dailyWeather = sortedHistory.map(day => weatherMap[day.weather]);
 
-      console.log('\nDaily Weather:', JSON.stringify(dailyWeather, null, 2));
-
-      const dailyAdvertising = sortedHistory.map(day => {
-        // Convert advertising cost to circuit value
-        let adValue;
-        switch (day.advertisingCost) {
-          case 0:
-            adValue = 0;  // none
-            break;
-          case 90:
-            adValue = 1;  // flyers ($9.00 -> 90 in 10-cent increments)
-            break;
-          case 240:
-            adValue = 2;  // social ($24.00 -> 240 in 10-cent increments)
-            break;
-          case 450:
-            adValue = 3;  // radio ($45.00 -> 450 in 10-cent increments)
-            break;
-          default:
-            throw new Error(`Invalid advertising cost on day ${day.day}: ${day.advertisingCost}`);
-        }
-        console.log(`Advertising for day ${day.day}: cost ${day.advertisingCost} -> ${adValue}`);
-        return adValue;
-      });
-
-      console.log('\nDaily Advertising:', JSON.stringify(dailyAdvertising, null, 2));
-
-      // Validate all arrays have the correct length
-      console.log('\n=== VALIDATING ARRAY LENGTHS ===');
-      console.log('Array lengths:', {
-        states: dailyStates.length,
-        recipes: dailyRecipes.length,
-        prices: dailyPrices.length,
-        weather: dailyWeather.length,
-        advertising: dailyAdvertising.length
-      });
-
-      if (dailyStates.length !== 7 || dailyRecipes.length !== 7 || 
-          dailyPrices.length !== 7 || dailyWeather.length !== 7 || 
-          dailyAdvertising.length !== 7) {
-        throw new Error(`Invalid array lengths: states=${dailyStates.length}, recipes=${dailyRecipes.length}, prices=${dailyPrices.length}, weather=${dailyWeather.length}, advertising=${dailyAdvertising.length}`);
-      }
-
-      // Validate all inner arrays have the correct length
-      console.log('\n=== VALIDATING INNER ARRAY LENGTHS ===');
-      dailyStates.forEach((state: DailyState, i: number) => {
-        console.log(`State array for day ${i + 1}:`, {
-          length: state.length,
-          values: state
-        });
-        if (state.length !== 4) {
-          throw new Error(`Invalid state array length at day ${i + 1}: ${state.length}`);
-        }
-      });
-
-      dailyRecipes.forEach((recipe, i) => {
-        console.log(`Recipe array for day ${i + 1}:`, {
-          length: recipe.length,
-          values: recipe
-        });
-        if (recipe.length !== 3) {
-          throw new Error(`Invalid recipe array length at day ${i + 1}: ${recipe.length}`);
-        }
-      });
-
-      console.log('\n=== FINAL DATA FOR CIRCUIT ===');
-      console.log('dailyStates:', JSON.stringify(dailyStates, null, 2));
-      console.log('dailyRecipes:', JSON.stringify(dailyRecipes, null, 2));
-      console.log('dailyPrices:', JSON.stringify(dailyPrices, null, 2));
-      console.log('dailyWeather:', JSON.stringify(dailyWeather, null, 2));
-      console.log('dailyAdvertising:', JSON.stringify(dailyAdvertising, null, 2));
-      console.log('finalScore:', gameState.finalScore);
-      console.log('startingMoney:', gameState.money);
+      // Convert advertising types to numbers
+      const advertisingMap: { [key: string]: number } = {
+        'none': 0,
+        'flyers': 1,
+        'social': 2,
+        'radio': 3
+      };
+      const dailyAdvertising = sortedHistory.map(day => 
+        advertisingMap[day.advertising]
+      );
 
       // Use final score for the circuit
       const finalMoney = gameState.finalScore || 0;
@@ -397,6 +217,7 @@ export const useLemonadeGame = (): [ReturnType<LemonadeStand['getState']>, GameA
       );
 
       if (!proofResult.isValid) {
+        console.error('Generated proof is invalid');
         return { success: false, error: 'Generated proof is invalid' };
       }
 

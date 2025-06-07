@@ -125,23 +125,37 @@
 }
 
 .decoderLink {
-  margin-top: 2rem;
-  text-align: center;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
 }
 
-.decoderLink a {
+.decoderLink a,
+.decoderLink button {
   color: #007bff;
   text-decoration: none;
   font-size: 1.1rem;
   font-weight: 500;
-  transition: color 0.2s;
+  transition: all 0.2s;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  border: none;
+  cursor: pointer;
 }
 
-.decoderLink a:hover {
+.decoderLink a:hover,
+.decoderLink button:hover {
   color: #0056b3;
-  text-decoration: underline;
+  background-color: #e9ecef;
+}
+
+.decoderLink .resetButton {
+  color: #dc3545;
+}
+
+.decoderLink .resetButton:hover {
+  color: #c82333;
+  background-color: #f8d7da;
 }
