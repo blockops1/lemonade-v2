@@ -71,7 +71,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
     }, [isDeepLinking, setSelectedAccount, setSelectedWallet]);
 
     const handleWalletConnectOpen = () => {
-        if (isMobile()) {
+        if (isMobile() && !selectedAccount) {
             setShowMobileOptions(true);
         } else {
             setIsWalletSelectOpen(true);
@@ -123,11 +123,21 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
         }
     };
 
+    if (selectedAccount) {
+        return (
+            <div className={styles.connectedContainer}>
+                <span className={styles.accountAddress}>
+                    {`${selectedAccount.slice(0, 6)}...${selectedAccount.slice(-4)}`}
+                </span>
+            </div>
+        );
+    }
+
     return (
-        <>
+        <div className={styles.container}>
             <button
                 onClick={handleWalletConnectOpen}
-                className={`button ${styles.walletButton} ${connectionStatus === 'error' ? styles.error : ''}`}
+                className={`${styles.connectButton} ${connectionStatus === 'error' ? styles.error : ''}`}
                 disabled={isDeepLinking || connectionStatus === 'connecting'}
             >
                 {getButtonText()}
@@ -146,7 +156,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
                 />
             )}
 
-            {showMobileOptions && !isDeepLinking && (
+            {showMobileOptions && !isDeepLinking && !selectedAccount && (
                 <div className={styles.mobileOptions}>
                     <button onClick={() => handleMobileWalletSelect('talisman')}>
                         Connect with Talisman
@@ -156,7 +166,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
                     </button>
                 </div>
             )}
-        </>
+        </div>
     );
 });
 

@@ -9,7 +9,6 @@ import styles from './page.module.css';
 import Image from 'next/image';
 import WalletInstructions from "@/components/WalletInstructions";
 import { setGlobalProofUrl } from '@/utils/globalState';
-import DebugPanel from '@/components/DebugPanel';
 
 export default function Home() {
   const [lastResult, setLastResult] = useState<{
@@ -85,7 +84,17 @@ export default function Home() {
     <main className={styles.main}>
       <div className={styles.container}>
         <div className={styles.header}>
+          <Image
+            src="/lemonade2.jpg"
+            alt="Lemonade Stand"
+            width={300}
+            height={200}
+            className={styles.lemonadeImage}
+          />
           <h1 className={styles.title}>Lemonade Stand</h1>
+        </div>
+        <div className={styles.walletSection}>
+          <WalletInstructions />
           <ConnectWalletButton onWalletConnected={() => {}} />
         </div>
         <div className={styles.content}>
@@ -113,7 +122,6 @@ export default function Home() {
           />
         </div>
       </div>
-      <DebugPanel />
     </main>
   );
 }

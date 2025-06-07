@@ -1,24 +1,58 @@
-.walletButton {
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.connectButton {
     background-color: #4CAF50;
-    transition: background-color 0.3s ease;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
 }
 
-.walletButton:hover {
+.connectButton:hover {
     background-color: #3e8e41;
-    color: #e6ffe6;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.walletButton:disabled {
+.connectButton:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
-.walletButton.error {
+.connectButton.error {
     background-color: #f44336;
 }
 
-.walletButton.error:hover {
+.connectButton.error:hover {
     background-color: #d32f2f;
+}
+
+.connectedContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background-color: #e8f5e9;
+    border-radius: 6px;
+    min-width: 200px;
+}
+
+.accountAddress {
+    color: #2e7d32;
+    font-weight: 600;
+    font-size: 16px;
 }
 
 .mobileOptions {
