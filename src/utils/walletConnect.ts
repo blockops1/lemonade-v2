@@ -17,11 +17,16 @@ export const WALLET_DEEP_LINKS = {
   subwallet: {
     // SubWallet uses a different format for deep linking
     deepLink: (returnUrl: string) => {
-      // SubWallet expects the returnUrl to be encoded only once
-      return `subwallet://wc?app=LemonadeV2&returnUrl=${returnUrl}`;
+      // SubWallet expects a specific format with dappUrl and returnUrl
+      const params = new URLSearchParams({
+        dappUrl: window.location.origin,
+        returnUrl: returnUrl,
+        action: 'connect'
+      });
+      return `subwallet://connect?${params.toString()}`;
     },
     appStore: 'https://apps.apple.com/us/app/subwallet/id1633050280',
-    playStore: 'https://play.google.com/store/apps/details/details?id=app.subwallet.mobile'
+    playStore: 'https://play.google.com/store/apps/details?id=app.subwallet.mobile'
   }
 };
 
