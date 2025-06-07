@@ -56,74 +56,159 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet'): Pro
     // For mobile SubWallet, we'll use deep linking
     if (walletType === 'subwallet' && isMobile()) {
       const returnUrl = encodeURIComponent(window.location.href);
-      const deepLink = `subwallet://wc?app=zkverify&returnUrl=${returnUrl}&action=connect&network=zkverify-testnet&rpcUrl=${encodeURIComponent(NETWORK_CONFIG.rpcUrl)}`;
+      const rpcUrl = encodeURIComponent(NETWORK_CONFIG.rpcUrl);
       
-      logWithSeparator('SUBWALLET DEEP LINK DETAILS', {
-        originalUrl: window.location.href,
-        encodedReturnUrl: returnUrl,
-        rpcUrl: NETWORK_CONFIG.rpcUrl,
-        encodedRpcUrl: encodeURIComponent(NETWORK_CONFIG.rpcUrl),
-        fullDeepLink: deepLink
+      // Define all URL formats to try
+      const urlFormats = [
+        {
+          name: 'Basic App Open',
+          url: 'subwallet://',
+          note: 'Just open the app'
+        },
+        {
+          name: 'Basic WC',
+          url: 'subwallet://wc',
+          note: 'Open wallet connect'
+        },
+        {
+          name: 'WC with App',
+          url: `subwallet://wc?app=zkverify`,
+          note: 'Wallet connect with app name'
+        },
+        {
+          name: 'WC with Return',
+          url: `subwallet://wc?returnUrl=${returnUrl}`,
+          note: 'Wallet connect with return URL'
+        },
+        {
+          name: 'WC with App and Return',
+          url: `subwallet://wc?app=zkverify&returnUrl=${returnUrl}`,
+          note: 'Wallet connect with app and return URL'
+        },
+        {
+          name: 'WC with Network',
+          url: `subwallet://wc?network=zkverify-testnet`,
+          note: 'Wallet connect with network'
+        },
+        {
+          name: 'WC with App and Network',
+          url: `subwallet://wc?app=zkverify&network=zkverify-testnet`,
+          note: 'Wallet connect with app and network'
+        },
+        {
+          name: 'WC with RPC',
+          url: `subwallet://wc?rpcUrl=${rpcUrl}`,
+          note: 'Wallet connect with RPC URL'
+        },
+        {
+          name: 'WC with App, Return, Network',
+          url: `subwallet://wc?app=zkverify&returnUrl=${returnUrl}&network=zkverify-testnet`,
+          note: 'Wallet connect with app, return URL, and network'
+        },
+        {
+          name: 'Full Parameters',
+          url: `subwallet://wc?app=zkverify&returnUrl=${returnUrl}&network=zkverify-testnet&rpcUrl=${rpcUrl}`,
+          note: 'Wallet connect with all parameters'
+        }
+      ];
+
+      logWithSeparator('SUBWALLET URL FORMATS', {
+        totalFormats: urlFormats.length,
+        formats: urlFormats.map(f => ({
+          name: f.name,
+          url: f.url,
+          note: f.note
+        }))
       });
 
-      logWithSeparator('OPENING SUBWALLET', { deepLink });
-      
-      // Store the start time for connection tracking
-      const connectionStartTime = Date.now();
-      
-      // Return a promise that will be resolved when the user returns from SubWallet
-      return new Promise<WalletConnectionResult>((resolve, reject) => {
-        const checkConnection = () => {
-          const urlParams = new URLSearchParams(window.location.search);
-          const status = urlParams.get('status');
-          const address = urlParams.get('address');
-          const error = urlParams.get('error');
-          const connectionTime = Date.now() - connectionStartTime;
-          
-          logWithSeparator('SUBWALLET CONNECTION CHECK', {
-            timeElapsed: `${connectionTime}ms`,
-            urlParams: Object.fromEntries(urlParams.entries()),
-            status,
-            address,
-            error,
-            currentUrl: window.location.href
+      // Try each URL format in sequence
+      let currentIndex = 0;
+      const tryNextFormat = (): Promise<WalletConnectionResult> => {
+        if (currentIndex >= urlFormats.length) {
+          logWithSeparator('SUBWALLET ALL FORMATS TRIED', {
+            note: 'All URL formats have been attempted'
           });
-          
-          if (status === 'success' && address) {
-            logWithSeparator('SUBWALLET CONNECTION SUCCESS', {
+          return Promise.reject(new Error('All SubWallet URL formats failed'));
+        }
+
+        const format = urlFormats[currentIndex];
+        logWithSeparator('SUBWALLET TRYING FORMAT', {
+          index: currentIndex + 1,
+          total: urlFormats.length,
+          format: format.name,
+          url: format.url,
+          note: format.note
+        });
+
+        // Store the start time for connection tracking
+        const connectionStartTime = Date.now();
+        
+        // Return a promise that will be resolved when the user returns from SubWallet
+        return new Promise<WalletConnectionResult>((resolve, reject) => {
+          const checkConnection = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const address = urlParams.get('address');
+            const error = urlParams.get('error');
+            const connectionTime = Date.now() - connectionStartTime;
+            
+            logWithSeparator('SUBWALLET CONNECTION CHECK', {
+              format: format.name,
+              timeElapsed: `${connectionTime}ms`,
+              urlParams: Object.fromEntries(urlParams.entries()),
+              status,
               address,
-              connectionTime: `${connectionTime}ms`,
-              returnUrl: window.location.href
+              error,
+              currentUrl: window.location.href
             });
-            resolve({ address, wallet: 'subwallet' });
-          } else if (status === 'error' || error) {
-            const errorMessage = error || 'Unknown error';
-            logWithSeparator('SUBWALLET CONNECTION ERROR', {
-              error: errorMessage,
-              connectionTime: `${connectionTime}ms`,
-              returnUrl: window.location.href
-            });
-            reject(new Error(`SubWallet connection failed: ${errorMessage}`));
-          } else {
-            // Check if we've been waiting too long (30 seconds)
-            if (connectionTime > 30000) {
-              logWithSeparator('SUBWALLET CONNECTION TIMEOUT', {
+            
+            if (status === 'success' && address) {
+              logWithSeparator('SUBWALLET CONNECTION SUCCESS', {
+                format: format.name,
+                address,
                 connectionTime: `${connectionTime}ms`,
                 returnUrl: window.location.href
               });
-              reject(new Error('SubWallet connection timed out'));
+              resolve({ address, wallet: 'subwallet' });
+            } else if (status === 'error' || error) {
+              const errorMessage = error || 'Unknown error';
+              logWithSeparator('SUBWALLET CONNECTION ERROR', {
+                format: format.name,
+                error: errorMessage,
+                connectionTime: `${connectionTime}ms`,
+                returnUrl: window.location.href
+              });
+              // Try next format on error
+              currentIndex++;
+              tryNextFormat();
             } else {
-              setTimeout(checkConnection, 1000);
+              // Check if we've been waiting too long (5 seconds per format)
+              if (connectionTime > 5000) {
+                logWithSeparator('SUBWALLET FORMAT TIMEOUT', {
+                  format: format.name,
+                  connectionTime: `${connectionTime}ms`,
+                  returnUrl: window.location.href,
+                  note: 'Moving to next format after 5 seconds'
+                });
+                // Try next format on timeout
+                currentIndex++;
+                tryNextFormat();
+              } else {
+                setTimeout(checkConnection, 1000);
+              }
             }
-          }
-        };
-        
-        // Start checking for connection status
-        checkConnection();
-        
-        // Navigate to SubWallet
-        window.location.href = deepLink;
-      });
+          };
+          
+          // Start checking for connection status
+          checkConnection();
+          
+          // Navigate to SubWallet with current format
+          window.location.href = format.url;
+        });
+      };
+
+      // Start with the first format
+      return tryNextFormat();
     }
     
     // For Talisman or desktop SubWallet, use the SDK
