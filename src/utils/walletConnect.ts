@@ -18,14 +18,10 @@ export const WALLET_DEEP_LINKS = {
     // SubWallet uses a different format for deep linking
     deepLink: (returnUrl: string) => {
       // SubWallet expects a specific format with dappUrl and returnUrl
-      const params = new URLSearchParams({
-        dappUrl: window.location.origin,
-        returnUrl: returnUrl,
-        action: 'connect'
-      });
-      return `subwallet://connect?${params.toString()}`;
+      // Note: returnUrl is already encoded, so we don't need to encode it again
+      return `subwallet://connect?dappUrl=${window.location.origin}&returnUrl=${returnUrl}&action=connect`;
     },
-    appStore: 'https://apps.apple.com/us/app/subwallet/id1633050280',
+    appStore: 'https://apps.apple.com/us/app/subwallet/id1633059480', // Updated App Store ID
     playStore: 'https://play.google.com/store/apps/details?id=app.subwallet.mobile'
   }
 };
