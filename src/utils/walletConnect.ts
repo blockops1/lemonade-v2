@@ -8,6 +8,11 @@ const NETWORK_CONFIG = {
   explorerUrl: 'https://zkverify-testnet.subscan.io/'
 };
 
+export interface WalletConnectionResult {
+  address: string;
+  wallet: 'talisman' | 'subwallet';
+}
+
 // Helper function for logging
 const logWithSeparator = (title: string, data?: any) => {
   console.log('==================================================');
@@ -35,7 +40,7 @@ const initializeTalismanSDK = async () => {
 };
 
 // Connect to wallet using Talisman SDK
-export const connectToWallet = async (walletType: 'talisman' | 'subwallet') => {
+export const connectToWallet = async (walletType: 'talisman' | 'subwallet'): Promise<WalletConnectionResult> => {
   logWithSeparator('WALLET CONNECTION STARTED', {
     walletType,
     isMobile: isMobile(),
@@ -57,7 +62,7 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet') => {
       window.location.href = deepLink;
       
       // Return a promise that will be resolved when the user returns from SubWallet
-      return new Promise((resolve, reject) => {
+      return new Promise<WalletConnectionResult>((resolve, reject) => {
         const checkConnection = () => {
           const urlParams = new URLSearchParams(window.location.search);
           const status = urlParams.get('status');

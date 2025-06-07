@@ -3,7 +3,7 @@ import { useAccount } from '@/context/AccountContext';
 import dynamic from 'next/dynamic';
 import styles from './ConnectWalletButton.module.css';
 import { isMobile } from '@/utils/device';
-import { connectToWallet } from '@/utils/walletConnect';
+import { connectToWallet, WalletConnectionResult } from '@/utils/walletConnect';
 
 const WalletSelect = dynamic(() =>
     import('@talismn/connect-components').then((mod) => mod.WalletSelect), {
