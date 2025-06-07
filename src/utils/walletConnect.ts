@@ -58,57 +58,32 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet'): Pro
       const returnUrl = encodeURIComponent(window.location.href);
       const rpcUrl = encodeURIComponent(NETWORK_CONFIG.rpcUrl);
       
-      // Define all URL formats to try
+      // Define the deep link formats based on SubWallet documentation
       const urlFormats = [
         {
-          name: 'Basic App Open',
-          url: 'subwallet://',
-          note: 'Just open the app'
+          name: 'Basic Connect',
+          url: 'subwallet://connect',
+          note: 'Basic connect without parameters'
         },
         {
-          name: 'Basic WC',
-          url: 'subwallet://wc',
-          note: 'Open wallet connect'
+          name: 'Connect with dApp Name',
+          url: 'subwallet://connect?dappName=zkverify',
+          note: 'Connect with dApp name'
         },
         {
-          name: 'WC with App',
-          url: `subwallet://wc?app=zkverify`,
-          note: 'Wallet connect with app name'
+          name: 'Connect with dApp Name and Return',
+          url: `subwallet://connect?dappName=zkverify&returnUrl=${returnUrl}`,
+          note: 'Connect with dApp name and return URL'
         },
         {
-          name: 'WC with Return',
-          url: `subwallet://wc?returnUrl=${returnUrl}`,
-          note: 'Wallet connect with return URL'
+          name: 'Connect with dApp Name and Network',
+          url: 'subwallet://connect?dappName=zkverify&network=zkverify-testnet',
+          note: 'Connect with dApp name and network'
         },
         {
-          name: 'WC with App and Return',
-          url: `subwallet://wc?app=zkverify&returnUrl=${returnUrl}`,
-          note: 'Wallet connect with app and return URL'
-        },
-        {
-          name: 'WC with Network',
-          url: `subwallet://wc?network=zkverify-testnet`,
-          note: 'Wallet connect with network'
-        },
-        {
-          name: 'WC with App and Network',
-          url: `subwallet://wc?app=zkverify&network=zkverify-testnet`,
-          note: 'Wallet connect with app and network'
-        },
-        {
-          name: 'WC with RPC',
-          url: `subwallet://wc?rpcUrl=${rpcUrl}`,
-          note: 'Wallet connect with RPC URL'
-        },
-        {
-          name: 'WC with App, Return, Network',
-          url: `subwallet://wc?app=zkverify&returnUrl=${returnUrl}&network=zkverify-testnet`,
-          note: 'Wallet connect with app, return URL, and network'
-        },
-        {
-          name: 'Full Parameters',
-          url: `subwallet://wc?app=zkverify&returnUrl=${returnUrl}&network=zkverify-testnet&rpcUrl=${rpcUrl}`,
-          note: 'Wallet connect with all parameters'
+          name: 'Connect with dApp Name, Return, and Network',
+          url: `subwallet://connect?dappName=zkverify&returnUrl=${returnUrl}&network=zkverify-testnet`,
+          note: 'Connect with dApp name, return URL, and network'
         }
       ];
 
@@ -142,6 +117,7 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet'): Pro
 
         // Store the start time for connection tracking
         const connectionStartTime = Date.now();
+        let appOpened = false;
         
         // Return a promise that will be resolved when the user returns from SubWallet
         return new Promise<WalletConnectionResult>((resolve, reject) => {
@@ -159,7 +135,8 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet'): Pro
               status,
               address,
               error,
-              currentUrl: window.location.href
+              currentUrl: window.location.href,
+              appOpened
             });
             
             if (status === 'success' && address) {
@@ -182,13 +159,31 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet'): Pro
               currentIndex++;
               tryNextFormat();
             } else {
-              // Check if we've been waiting too long (5 seconds per format)
-              if (connectionTime > 5000) {
+              // Check if we've been waiting too long (3 seconds per format)
+              if (connectionTime > 3000) {
+                // If app hasn't opened yet, try to open app store
+                if (!appOpened) {
+                  appOpened = true;
+                  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                  const appStoreUrl = isIOS 
+                    ? 'https://apps.apple.com/us/app/subwallet-polkadot-wallet/id1633050288'
+                    : 'https://play.google.com/store/apps/details?id=subwallet.app';
+                  
+                  logWithSeparator('SUBWALLET APP STORE REDIRECT', {
+                    format: format.name,
+                    appStoreUrl,
+                    note: 'Attempting to open app store'
+                  });
+                  
+                  window.location.href = appStoreUrl;
+                  return;
+                }
+                
                 logWithSeparator('SUBWALLET FORMAT TIMEOUT', {
                   format: format.name,
                   connectionTime: `${connectionTime}ms`,
                   returnUrl: window.location.href,
-                  note: 'Moving to next format after 5 seconds'
+                  note: 'Moving to next format after 3 seconds'
                 });
                 // Try next format on timeout
                 currentIndex++;
