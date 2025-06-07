@@ -1,5 +1,5 @@
 import { isMobile, isIOS } from '@/utils/device';
-import { getWallets, Wallet } from '@talismn/connect-wallets';
+import { getWallets } from '@talismn/connect-wallets';
 
 // Network configuration
 const NETWORK_CONFIG = {
@@ -9,41 +9,29 @@ const NETWORK_CONFIG = {
 };
 
 // Helper function for logging
-const logWithSeparator = (title: string, data: any) => {
-  console.log('\n' + '='.repeat(50));
+const logWithSeparator = (title: string, data?: any) => {
+  console.log('==================================================');
   console.log(`=== ${title} ===`);
-  console.log('='.repeat(50));
-  console.log(data);
-  console.log('='.repeat(50) + '\n');
+  console.log('==================================================');
+  if (data) {
+    console.log(data);
+    console.log('==================================================');
+  }
 };
 
 // Initialize Talisman SDK
 const initializeTalismanSDK = async () => {
-  logWithSeparator('INITIALIZING TALISMAN SDK', {
-    networkConfig: NETWORK_CONFIG
+  logWithSeparator('INITIALIZING TALISMAN SDK', { networkConfig: NETWORK_CONFIG });
+
+  // Get all available wallets
+  const wallets = await getWallets();
+  
+  logWithSeparator('TALISMAN SDK INITIALIZED', { 
+    availableWallets: wallets.map(w => w.extensionName),
+    networkConfig: NETWORK_CONFIG 
   });
 
-  try {
-    const wallets = getWallets();
-    logWithSeparator('TALISMAN SDK INITIALIZED', {
-      availableWallets: wallets.map(w => ({
-        name: w.extensionName,
-        installed: w.installed
-      })),
-      networkConfig: NETWORK_CONFIG
-    });
-    return wallets;
-  } catch (error: any) {
-    logWithSeparator('TALISMAN SDK INITIALIZATION ERROR', {
-      error: {
-        name: error?.name,
-        message: error?.message,
-        stack: error?.stack
-      },
-      networkConfig: NETWORK_CONFIG
-    });
-    throw error;
-  }
+  return wallets;
 };
 
 // Connect to wallet using Talisman SDK
@@ -59,14 +47,41 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet') => {
   try {
     // Initialize SDK and get available wallets
     const wallets = await initializeTalismanSDK();
+    
+    // For mobile SubWallet, we'll use deep linking
+    if (walletType === 'subwallet' && isMobile()) {
+      const returnUrl = encodeURIComponent(window.location.href);
+      const deepLink = `subwallet://wc?app=lemonade&returnUrl=${returnUrl}&action=connect&network=volta`;
+      
+      logWithSeparator('OPENING SUBWALLET', { deepLink });
+      window.location.href = deepLink;
+      
+      // Return a promise that will be resolved when the user returns from SubWallet
+      return new Promise((resolve, reject) => {
+        const checkConnection = () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const status = urlParams.get('status');
+          const address = urlParams.get('address');
+          
+          if (status === 'success' && address) {
+            resolve({ address, wallet: 'subwallet' });
+          } else if (status === 'error') {
+            reject(new Error('SubWallet connection failed'));
+          } else {
+            setTimeout(checkConnection, 1000);
+          }
+        };
+        
+        checkConnection();
+      });
+    }
+    
+    // For Talisman or desktop SubWallet, use the SDK
     const wallet = wallets.find(w => w.extensionName === walletType);
     
     logWithSeparator('WALLET STATUS', {
       found: !!wallet,
-      details: wallet ? {
-        name: wallet.extensionName,
-        installed: wallet.installed
-      } : 'Not found',
+      details: wallet ? 'Found' : 'Not found',
       networkConfig: NETWORK_CONFIG
     });
 
@@ -75,55 +90,33 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet') => {
     }
 
     // Enable the wallet
-    logWithSeparator('ENABLING WALLET', {
-      walletType,
-      networkConfig: NETWORK_CONFIG
-    });
-
-    await wallet.enable('LemonadeV2');
-
+    logWithSeparator('ENABLING WALLET', { wallet: walletType });
+    await wallet.enable(NETWORK_CONFIG.name);
+    
     // Get accounts
-    logWithSeparator('GETTING ACCOUNTS', {
-      walletType,
-      networkConfig: NETWORK_CONFIG
-    });
-
+    logWithSeparator('GETTING ACCOUNTS', { wallet: walletType });
     const accounts = await wallet.getAccounts();
     
-    logWithSeparator('ACCOUNTS RETRIEVED', {
-      accounts: accounts.map(acc => ({
-        address: acc.address,
-        name: acc.name,
-        source: acc.source,
-        network: NETWORK_CONFIG.name
-      })),
-      networkConfig: NETWORK_CONFIG
-    });
-
     if (!accounts || accounts.length === 0) {
       throw new Error('No accounts found');
     }
 
-    // Return the first account
+    // Select the first account
+    const selectedAccount = accounts[0];
+    
     logWithSeparator('CONNECTION SUCCESSFUL', {
-      address: accounts[0].address,
-      network: NETWORK_CONFIG.name,
+      wallet: walletType,
+      address: selectedAccount.address,
       networkConfig: NETWORK_CONFIG
     });
 
     return {
-      address: accounts[0].address,
-      wallet: walletType,
-      network: NETWORK_CONFIG.name
+      address: selectedAccount.address,
+      wallet: walletType
     };
-
-  } catch (error: any) {
+  } catch (error) {
     logWithSeparator('CONNECTION ERROR', {
-      error: {
-        name: error?.name,
-        message: error?.message,
-        stack: error?.stack
-      },
+      error: error instanceof Error ? error.message : 'Unknown error',
       walletType,
       networkConfig: NETWORK_CONFIG
     });
