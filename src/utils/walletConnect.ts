@@ -56,10 +56,20 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet'): Pro
     // For mobile SubWallet, we'll use deep linking
     if (walletType === 'subwallet' && isMobile()) {
       const returnUrl = encodeURIComponent(window.location.href);
-      const deepLink = `subwallet://wc?app=lemonade&returnUrl=${returnUrl}&action=connect&network=volta`;
+      const deepLink = `subwallet://wc?app=zkverify&returnUrl=${returnUrl}&action=connect&network=zkverify-testnet&rpcUrl=${encodeURIComponent(NETWORK_CONFIG.rpcUrl)}`;
       
+      logWithSeparator('SUBWALLET DEEP LINK DETAILS', {
+        originalUrl: window.location.href,
+        encodedReturnUrl: returnUrl,
+        rpcUrl: NETWORK_CONFIG.rpcUrl,
+        encodedRpcUrl: encodeURIComponent(NETWORK_CONFIG.rpcUrl),
+        fullDeepLink: deepLink
+      });
+
       logWithSeparator('OPENING SUBWALLET', { deepLink });
-      window.location.href = deepLink;
+      
+      // Store the start time for connection tracking
+      const connectionStartTime = Date.now();
       
       // Return a promise that will be resolved when the user returns from SubWallet
       return new Promise<WalletConnectionResult>((resolve, reject) => {
@@ -67,17 +77,52 @@ export const connectToWallet = async (walletType: 'talisman' | 'subwallet'): Pro
           const urlParams = new URLSearchParams(window.location.search);
           const status = urlParams.get('status');
           const address = urlParams.get('address');
+          const error = urlParams.get('error');
+          const connectionTime = Date.now() - connectionStartTime;
+          
+          logWithSeparator('SUBWALLET CONNECTION CHECK', {
+            timeElapsed: `${connectionTime}ms`,
+            urlParams: Object.fromEntries(urlParams.entries()),
+            status,
+            address,
+            error,
+            currentUrl: window.location.href
+          });
           
           if (status === 'success' && address) {
+            logWithSeparator('SUBWALLET CONNECTION SUCCESS', {
+              address,
+              connectionTime: `${connectionTime}ms`,
+              returnUrl: window.location.href
+            });
             resolve({ address, wallet: 'subwallet' });
-          } else if (status === 'error') {
-            reject(new Error('SubWallet connection failed'));
+          } else if (status === 'error' || error) {
+            const errorMessage = error || 'Unknown error';
+            logWithSeparator('SUBWALLET CONNECTION ERROR', {
+              error: errorMessage,
+              connectionTime: `${connectionTime}ms`,
+              returnUrl: window.location.href
+            });
+            reject(new Error(`SubWallet connection failed: ${errorMessage}`));
           } else {
-            setTimeout(checkConnection, 1000);
+            // Check if we've been waiting too long (30 seconds)
+            if (connectionTime > 30000) {
+              logWithSeparator('SUBWALLET CONNECTION TIMEOUT', {
+                connectionTime: `${connectionTime}ms`,
+                returnUrl: window.location.href
+              });
+              reject(new Error('SubWallet connection timed out'));
+            } else {
+              setTimeout(checkConnection, 1000);
+            }
           }
         };
         
+        // Start checking for connection status
         checkConnection();
+        
+        // Navigate to SubWallet
+        window.location.href = deepLink;
       });
     }
     
