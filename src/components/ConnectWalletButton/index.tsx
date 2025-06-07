@@ -62,7 +62,7 @@ const ConnectWalletButton = forwardRef<ConnectWalletButtonHandle, { onWalletConn
 
             {isWalletSelectOpen && (
                 <WalletSelect
-                    dappName="zkVerify"
+                    dappName="Lemonade Stand Game"
                     open={isWalletSelectOpen}
                     onWalletConnectOpen={handleWalletConnectOpen}
                     onWalletConnectClose={handleWalletConnectClose}
