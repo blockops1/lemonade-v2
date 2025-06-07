@@ -1,6 +1,13 @@
 import { isMobile, isIOS } from '@/utils/device';
 import { getWallets } from '@talismn/connect-wallets';
 
+// Network configuration
+const NETWORK_CONFIG = {
+  name: 'zkVerify Testnet',
+  rpcUrl: 'wss://testnet-rpc.zkverify.io',
+  explorerUrl: 'https://zkverify-testnet.subscan.io/'
+};
+
 // Deep links for different wallets
 export const WALLET_DEEP_LINKS = {
   talisman: {
@@ -8,12 +15,14 @@ export const WALLET_DEEP_LINKS = {
     deepLink: (returnUrl: string) => {
       const params = new URLSearchParams({
         app: 'LemonadeV2',
-        returnUrl: returnUrl
+        returnUrl: returnUrl,
+        network: NETWORK_CONFIG.name
       });
       const link = `talisman://wc?${params.toString()}`;
       console.log('Talisman deep link params:', {
         app: 'LemonadeV2',
         returnUrl: returnUrl,
+        network: NETWORK_CONFIG.name,
         encodedParams: params.toString(),
         finalLink: link
       });
@@ -23,13 +32,16 @@ export const WALLET_DEEP_LINKS = {
     playStore: 'https://play.google.com/store/apps/details?id=co.talisman.mobile'
   },
   subwallet: {
+    // SubWallet uses a different format for deep linking
     deepLink: (returnUrl: string) => {
       // Log the raw parameters before encoding
       console.log('SubWallet deep link raw params:', {
         dappUrl: window.location.origin,
         returnUrl: returnUrl,
         action: 'connect',
-        network: 'volta'
+        network: NETWORK_CONFIG.name,
+        rpcUrl: NETWORK_CONFIG.rpcUrl,
+        explorerUrl: NETWORK_CONFIG.explorerUrl
       });
 
       // Use URLSearchParams to handle encoding properly
@@ -37,12 +49,17 @@ export const WALLET_DEEP_LINKS = {
       params.append('dappUrl', window.location.origin);
       params.append('returnUrl', returnUrl);
       params.append('action', 'connect');
-      params.append('network', 'volta');
+      params.append('network', NETWORK_CONFIG.name);
+      params.append('rpcUrl', NETWORK_CONFIG.rpcUrl);
+      params.append('explorerUrl', NETWORK_CONFIG.explorerUrl);
 
       const link = `subwallet://wc?${params.toString()}`;
       console.log('SubWallet deep link encoded params:', {
         dappUrl: window.location.origin,
         returnUrl: returnUrl,
+        network: NETWORK_CONFIG.name,
+        rpcUrl: NETWORK_CONFIG.rpcUrl,
+        explorerUrl: NETWORK_CONFIG.explorerUrl,
         encodedParams: params.toString(),
         finalLink: link
       });
@@ -58,7 +75,8 @@ export const connectToMobileWallet = async (walletType: 'talisman' | 'subwallet'
     walletType,
     isMobile: isMobile(),
     isIOS: isIOS(),
-    userAgent: navigator.userAgent
+    userAgent: navigator.userAgent,
+    networkConfig: NETWORK_CONFIG
   });
   
   // Get the current URL and encode it for the return URL
@@ -70,7 +88,8 @@ export const connectToMobileWallet = async (walletType: 'talisman' | 'subwallet'
     returnUrl,
     origin: window.location.origin,
     pathname: window.location.pathname,
-    search: window.location.search
+    search: window.location.search,
+    networkConfig: NETWORK_CONFIG
   });
 
   // Check for any existing URL parameters that might indicate a return from wallet
@@ -79,6 +98,7 @@ export const connectToMobileWallet = async (walletType: 'talisman' | 'subwallet'
     status: urlParams.get('status'),
     address: urlParams.get('address'),
     wallet: urlParams.get('wallet'),
+    network: urlParams.get('network'),
     allParams: Object.fromEntries(urlParams.entries())
   });
 
