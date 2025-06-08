@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     description: "Run your own virtual lemonade stand in this fun web3 game! Connect your zkVerify wallet, manage resources, and compete to make the most profit in 7 days.",
     type: "website",
     url: "https://lemonade-game.vercel.app",
+    siteName: "Lemonade Stand Game",
     images: [
       {
         url: "/og-image.png",
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
     title: "Lemonade Stand Game - A zkVerify Experience",
     description: "Run your own virtual lemonade stand in this fun web3 game! Connect your zkVerify wallet, manage resources, and compete to make the most profit in 7 days.",
     images: ["/og-image.png"],
+    creator: "@zkVerify",
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
 };
