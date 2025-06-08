@@ -1,27 +1,7 @@
-import Database from 'better-sqlite3';
-import path from 'path';
+import { neon } from '@neondatabase/serverless';
 
-// Check if we're in a server environment
-const isServer = typeof window === 'undefined';
-
-// Only initialize database on server
-let db: Database.Database | null = null;
-
-if (isServer) {
-  const dbPath = path.join(process.cwd(), 'data', 'leaderboard.db');
-  db = new Database(dbPath);
-  
-  // Create table if it doesn't exist
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS leaderboard (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      address TEXT NOT NULL,
-      score INTEGER NOT NULL,
-      proof_url TEXT NOT NULL,
-      date DATETIME DEFAULT (datetime('now', 'localtime'))
-    )
-  `);
-}
+// Get the database URL from environment variables
+const sql = neon(process.env.DATABASE_URL!);
 
 export interface LeaderboardEntry {
   id: number;
@@ -32,59 +12,84 @@ export interface LeaderboardEntry {
   rank: number;
 }
 
-export function getLeaderboard(): LeaderboardEntry[] {
-  if (!isServer || !db) {
-    throw new Error('Database operations can only be performed on the server');
+// Initialize the database table
+export async function initializeDatabase() {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS leaderboard (
+        id SERIAL PRIMARY KEY,
+        address TEXT NOT NULL,
+        score INTEGER NOT NULL,
+        proof_url TEXT NOT NULL,
+        date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    console.log('Database initialized successfully');
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
   }
-
-  const stmt = db.prepare(`
-    WITH RankedEntries AS (
-      SELECT 
-        *,
-        ROW_NUMBER() OVER (ORDER BY score DESC) as rank
-      FROM leaderboard
-    )
-    SELECT * FROM RankedEntries
-    ORDER BY score DESC 
-    LIMIT 100
-  `);
-  
-  return stmt.all() as LeaderboardEntry[];
 }
 
-export function addLeaderboardEntry(address: string, score: number, proof_url: string): LeaderboardEntry {
-  if (!isServer || !db) {
-    throw new Error('Database operations can only be performed on the server');
+export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
+  try {
+    const result = await sql`
+      WITH RankedEntries AS (
+        SELECT 
+          *,
+          ROW_NUMBER() OVER (ORDER BY score DESC) as rank
+        FROM leaderboard
+      )
+      SELECT * FROM RankedEntries
+      ORDER BY score DESC 
+      LIMIT 100
+    `;
+    
+    return result as LeaderboardEntry[];
+  } catch (error) {
+    console.error('Error getting leaderboard:', error);
+    throw error;
   }
-
-  const stmt = db.prepare(`
-    INSERT INTO leaderboard (address, score, proof_url)
-    VALUES (?, ?, ?)
-    RETURNING *
-  `);
-  
-  const entry = stmt.get(address, score, proof_url) as LeaderboardEntry;
-  const rank = getPlayerRank(address);
-  return { ...entry, rank };
 }
 
-export function getPlayerRank(address: string): number {
-  if (!isServer || !db) {
-    throw new Error('Database operations can only be performed on the server');
+export async function addLeaderboardEntry(
+  address: string, 
+  score: number, 
+  proof_url: string
+): Promise<LeaderboardEntry> {
+  try {
+    const result = await sql`
+      INSERT INTO leaderboard (address, score, proof_url)
+      VALUES (${address}, ${score}, ${proof_url})
+      RETURNING *
+    `;
+    
+    const entry = result[0] as LeaderboardEntry;
+    const rank = await getPlayerRank(address);
+    return { ...entry, rank };
+  } catch (error) {
+    console.error('Error adding leaderboard entry:', error);
+    throw error;
   }
+}
 
-  const stmt = db.prepare(`
-    SELECT COUNT(*) + 1 as rank
-    FROM leaderboard
-    WHERE score > (
-      SELECT score
+export async function getPlayerRank(address: string): Promise<number> {
+  try {
+    const result = await sql`
+      SELECT COUNT(*) + 1 as rank
       FROM leaderboard
-      WHERE address = ?
-      ORDER BY score DESC
-      LIMIT 1
-    )
-  `);
-  
-  const result = stmt.get(address) as { rank: number };
-  return result.rank;
+      WHERE score > (
+        SELECT score
+        FROM leaderboard
+        WHERE address = ${address}
+        ORDER BY score DESC
+        LIMIT 1
+      )
+    `;
+    
+    return parseInt(result[0].rank);
+  } catch (error) {
+    console.error('Error getting player rank:', error);
+    throw error;
+  }
 } 

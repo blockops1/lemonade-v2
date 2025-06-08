@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getLeaderboard, addLeaderboardEntry, getPlayerRank } from '@/utils/database';
+import { getLeaderboard, addLeaderboardEntry, getPlayerRank, initializeDatabase } from '@/utils/database';
+
+// Initialize database on startup
+initializeDatabase().catch(console.error);
 
 export async function GET() {
   try {
-    const leaderboard = getLeaderboard();
+    const leaderboard = await getLeaderboard();
     console.log('Leaderboard data from database:', leaderboard);
     return NextResponse.json({ leaderboard });
   } catch (error) {
@@ -26,9 +29,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const entry = addLeaderboardEntry(address, score, proof_url);
+    const entry = await addLeaderboardEntry(address, score, proof_url);
     console.log('New leaderboard entry:', entry);
-    const playerRank = getPlayerRank(address);
+    const playerRank = await getPlayerRank(address);
 
     return NextResponse.json({ entry, playerRank });
   } catch (error) {
