@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    images: {
+        remotePatterns: [],
+        unoptimized: true,
+    },
     webpack: (config) => {
         // Add WASM support
         config.experiments = {

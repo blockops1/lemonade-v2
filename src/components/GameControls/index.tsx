@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from './GameControls.module.css';
 import ingredientStyles from './ingredients.module.css';
-import { IngredientIcon } from './IngredientIcons';
+import Image from 'next/image';
 
 interface GameControlsProps {
   onBuyIngredients: (item: 'lemons' | 'sugar' | 'ice', quantity: number) => boolean;
@@ -83,7 +83,6 @@ export const GameControls: React.FC<GameControlsProps> = ({
         
         <div className={ingredientStyles.ingredientControl}>
           <div className={ingredientStyles.ingredientLabel}>
-            <IngredientIcon type="lemon" />
             <span>Lemons</span>
             <span className={ingredientStyles.ingredientPrice}>($0.50 each)</span>
           </div>
@@ -104,12 +103,24 @@ export const GameControls: React.FC<GameControlsProps> = ({
             >
               Buy
             </button>
+            <div className={ingredientStyles.ingredientImage}>
+              <Image
+                src="/images/lemons.jpg"
+                alt="Lemons"
+                width={48}
+                height={48}
+                style={{ objectFit: 'cover' }}
+                onError={(e) => {
+                  console.error('Error loading lemons image');
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
           </div>
         </div>
 
         <div className={ingredientStyles.ingredientControl}>
           <div className={ingredientStyles.ingredientLabel}>
-            <IngredientIcon type="sugar" />
             <span>Sugar</span>
             <span className={ingredientStyles.ingredientPrice}>($0.30 each)</span>
           </div>
@@ -130,12 +141,24 @@ export const GameControls: React.FC<GameControlsProps> = ({
             >
               Buy
             </button>
+            <div className={ingredientStyles.ingredientImage}>
+              <Image
+                src="/images/sugar.jpg"
+                alt="Sugar"
+                width={48}
+                height={48}
+                style={{ objectFit: 'cover' }}
+                onError={(e) => {
+                  console.error('Error loading sugar image');
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
           </div>
         </div>
 
         <div className={ingredientStyles.ingredientControl}>
           <div className={ingredientStyles.ingredientLabel}>
-            <IngredientIcon type="ice" />
             <span>Ice</span>
             <span className={ingredientStyles.ingredientPrice}>($0.20 each)</span>
           </div>
@@ -156,6 +179,19 @@ export const GameControls: React.FC<GameControlsProps> = ({
             >
               Buy
             </button>
+            <div className={ingredientStyles.ingredientImage}>
+              <Image
+                src="/images/ice.jpg"
+                alt="Ice"
+                width={48}
+                height={48}
+                style={{ objectFit: 'cover' }}
+                onError={(e) => {
+                  console.error('Error loading ice image');
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

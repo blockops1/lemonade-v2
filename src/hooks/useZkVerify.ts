@@ -108,6 +108,7 @@ export function useZkVerify() {
             }
 
             if (!selectedWallet || !selectedAccount) {
+                console.error('Wallet connection check failed:', { selectedWallet, selectedAccount });
                 throw new Error('Wallet or account is not selected');
             }
 
@@ -133,6 +134,7 @@ export function useZkVerify() {
             console.log('Parsed proof data:', proofData);
 
             // Start a new zkVerify session with the connected wallet
+            console.log('Starting zkVerify session...');
             const session = await zkVerifySession.start()
                 .Volta()
                 .withWallet({
@@ -140,7 +142,7 @@ export function useZkVerify() {
                     accountAddress: selectedAccount,
                 });
 
-            console.log('zkVerify session started');
+            console.log('zkVerify session started successfully');
 
             // Log the verification key hash value
             console.log('\n=== VERIFICATION KEY HASH DETAILS ===');
@@ -169,6 +171,8 @@ export function useZkVerify() {
                     },
                     domainId: 0
                 });
+
+            console.log('Proof verification initiated');
 
             // Listen for verification events
             verifyEvents.on(ZkVerifyEvents.IncludedInBlock, async (data) => {

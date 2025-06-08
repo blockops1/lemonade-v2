@@ -28,22 +28,39 @@ export function getAvailableWallets() {
 // Connect to Talisman wallet
 export async function connectTalismanWallet() {
   try {
+    console.log('Starting Talisman wallet connection...');
+    
     // Enable web3
-    await web3Enable('Lemonade Stand Game');
+    const extensions = await web3Enable('Lemonade Stand Game');
+    console.log('Enabled extensions:', extensions);
 
     // Get all accounts
     const allAccounts = await web3Accounts();
     console.log('Available accounts:', allAccounts);
 
     if (allAccounts.length === 0) {
-      // Instead of throwing an error, return null to indicate no account is selected
       console.log('No accounts found. User needs to log in to Talisman wallet.');
-      return null;
+      // Wait for a short time to allow the user to log in
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Try getting accounts again after the delay
+      const retryAccounts = await web3Accounts();
+      console.log('Retry accounts:', retryAccounts);
+      
+      if (retryAccounts.length === 0) {
+        console.log('Still no accounts found after retry');
+        return null;
+      }
     }
 
     // Get the first account
-    const account = allAccounts[0];
+    const account = allAccounts[0] || (await web3Accounts())[0];
     console.log('Selected account:', account);
+
+    if (!account) {
+      console.log('No account selected after all attempts');
+      return null;
+    }
 
     // Initialize API if not already initialized
     const api = await initializeApi();
@@ -70,6 +87,7 @@ export function disconnectWallet() {
 export async function getCurrentAccount() {
   try {
     const accounts = await web3Accounts();
+    console.log('Current accounts:', accounts);
     return accounts[0] || null;
   } catch (error) {
     console.error('Error getting current account:', error);
@@ -81,6 +99,7 @@ export async function getCurrentAccount() {
 export async function isWalletConnected() {
   try {
     const account = await getCurrentAccount();
+    console.log('Wallet connection check:', { connected: !!account, account });
     return !!account;
   } catch (error) {
     console.error('Error checking wallet connection:', error);
