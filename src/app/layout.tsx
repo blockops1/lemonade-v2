@@ -52,6 +52,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/images/lemons.jpg" type="image/jpeg" />
+        <link rel="apple-touch-icon" href="/images/lemons.jpg" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.className}`}>
         <AccountProvider>
           {children}
