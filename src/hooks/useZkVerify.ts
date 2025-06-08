@@ -164,13 +164,13 @@ export function useZkVerify() {
                 .groth16({ library: Library.snarkjs, curve: CurveType.bn128 })
                 .withRegisteredVk()
                 .execute({
-                    proofData: {
+                proofData: {
                         vk: "0xc22f5b62480219ff00984575163c99cb32649bd903b041237cda7c16a4977c46", // Use the hash from vkey.json
-                        proof: proofData,
+                    proof: proofData,
                         publicSignals
-                    },
-                    domainId: 0
-                });
+                },
+                domainId: 0
+            });
 
             console.log('Proof verification initiated');
 

@@ -96,13 +96,13 @@ export const GameControls: React.FC<GameControlsProps> = ({
               disabled={disabled}
               className={ingredientStyles.ingredientInput}
             />
-            <button 
-              onClick={() => handleBuy('lemons')}
+          <button 
+            onClick={() => handleBuy('lemons')}
               disabled={disabled || !quantities.lemons || parseInt(quantities.lemons) === 0}
               className={ingredientStyles.ingredientButton}
-            >
+          >
               Buy
-            </button>
+          </button>
             <div className={ingredientStyles.ingredientImage}>
               <Image
                 src="/images/lemons.jpg"
@@ -134,13 +134,13 @@ export const GameControls: React.FC<GameControlsProps> = ({
               disabled={disabled}
               className={ingredientStyles.ingredientInput}
             />
-            <button 
-              onClick={() => handleBuy('sugar')}
+          <button 
+            onClick={() => handleBuy('sugar')}
               disabled={disabled || !quantities.sugar || parseInt(quantities.sugar) === 0}
               className={ingredientStyles.ingredientButton}
-            >
+          >
               Buy
-            </button>
+          </button>
             <div className={ingredientStyles.ingredientImage}>
               <Image
                 src="/images/sugar.jpg"
@@ -172,13 +172,13 @@ export const GameControls: React.FC<GameControlsProps> = ({
               disabled={disabled}
               className={ingredientStyles.ingredientInput}
             />
-            <button 
-              onClick={() => handleBuy('ice')}
+          <button 
+            onClick={() => handleBuy('ice')}
               disabled={disabled || !quantities.ice || parseInt(quantities.ice) === 0}
               className={ingredientStyles.ingredientButton}
-            >
+          >
               Buy
-            </button>
+          </button>
             <div className={ingredientStyles.ingredientImage}>
               <Image
                 src="/images/ice.jpg"
