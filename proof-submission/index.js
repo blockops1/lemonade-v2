@@ -5,7 +5,7 @@ async function main() {
     // Read the proof files
     const proof = JSON.parse(fs.readFileSync("./data/proof.json", 'utf8'));
     const public = JSON.parse(fs.readFileSync("./data/public.json", 'utf8'));
-    const key = JSON.parse(fs.readFileSync("./data/lemonade_new_verification_key.json", 'utf8'));
+    const key = JSON.parse(fs.readFileSync("./data/lemonade_basic_verification_key.json", 'utf8'));
 
     // Start a session with Volta testnet
     const session = await zkVerifySession.start().Volta().withAccount("r");

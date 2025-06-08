@@ -36,6 +36,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# database
+data/leaderboard.db
+
 .idea
 
 # sensitive files

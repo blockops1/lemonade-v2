@@ -1,0 +1,119 @@
+.ingredientIcon {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+}
+
+.lemonIcon {
+  color: #FFD700;
+  filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
+}
+
+.sugarIcon {
+  color: #FFE4E1;
+  filter: drop-shadow(0 2px 4px rgba(255, 228, 225, 0.3));
+}
+
+.iceIcon {
+  color: #ADD8E6;
+  filter: drop-shadow(0 2px 4px rgba(173, 216, 230, 0.3));
+}
+
+.ingredientImage {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  margin-left: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+}
+
+.ingredientImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ingredientControl {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ingredientControl::before {
+  display: none;
+}
+
+.ingredientControl:hover::before {
+  display: none;
+}
+
+.ingredientLabel {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.ingredientInput {
+  width: 80px;
+  padding: 0.5rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  text-align: center;
+  background: white;
+}
+
+.ingredientInput:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  outline: none;
+}
+
+.ingredientButton {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ingredientButton:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+.ingredientPrice {
+  font-size: 0.8rem;
+  color: #666;
+  margin-left: 4px;
+}
+
+.ingredientQuantity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quantityLabel {
+  font-size: 0.8rem;
+  color: #666;
+  margin-right: 4px;
+} 

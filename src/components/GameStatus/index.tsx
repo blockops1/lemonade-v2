@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './GameStatus.module.css';
 import { useGameProof } from '../../hooks/useGameProof';
 import { useProofUrl } from '@/hooks/useProofUrl';
+import { useProofSubmitted } from '@/hooks/useProofSubmitted';
+import Link from 'next/link';
 
 interface GameStatusProps {
   day: number;
@@ -73,19 +75,53 @@ export const GameStatus: React.FC<GameStatusProps> = ({
   onGenerateProof,
   salesHistory
 }) => {
-  const { generateAndVerifyProof, isGenerating, error, status, eventData, hasSubmittedProof } = useGameProof();
+  const { generateAndVerifyProof, isGenerating, error, status, eventData } = useGameProof();
   const [proofError, setProofError] = useState<string | null>(null);
   const proofUrl = useProofUrl();
+  const hasSubmittedProof = useProofSubmitted();
+
+  // Add effect to log button state changes
+  useEffect(() => {
+    console.log('GameStatus button state:', {
+      isGenerating,
+      hasSubmittedProof,
+      shouldBeDisabled: isGenerating || hasSubmittedProof,
+      proofUrl,
+      eventData,
+      buttonText: isGenerating ? 'Generating Proof...' : hasSubmittedProof ? 'Proof Submitted' : 'Submit Proof'
+    });
+  }, [isGenerating, hasSubmittedProof, proofUrl, eventData]);
+
+  // Add effect to handle proof submission state
+  useEffect(() => {
+    if (hasSubmittedProof) {
+      console.log('Proof submission detected in GameStatus');
+    }
+  }, [hasSubmittedProof]);
 
   const handleGenerateProof = async () => {
+    console.log('\n=== STARTING PROOF GENERATION FROM GAME STATUS ===');
+    console.log('Current state:', {
+      isGenerating,
+      hasSubmittedProof,
+      shouldBeDisabled: isGenerating || hasSubmittedProof
+    });
+
     if (!lastResult?.gameOver || !lastResult.finalScore) {
+      console.error('Cannot generate proof: Game is not over or no final score');
       setProofError('Cannot generate proof before game is over');
       return;
     }
 
+    console.log('Calling onGenerateProof...');
     const result = await onGenerateProof();
+    console.log('onGenerateProof result:', result);
+
     if (!result.success) {
+      console.error('Proof generation failed:', result.error);
       setProofError(result.error || 'Failed to generate proof');
+    } else {
+      console.log('Proof generated successfully');
     }
   };
 
@@ -104,19 +140,17 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             <h3>Money</h3>
             <p>${(money / 10).toFixed(2)}</p>
           </div>
-          <div className={styles.weatherInfo}>
-            <div className={styles.weatherItem}>
-              <span className={styles.weatherLabel}>Weather:</span>
-              <span className={styles.weatherValue}>{weather}</span>
-            </div>
-          </div>
         </div>
-        <button 
-          onClick={onReset}
-          className={styles.resetButton}
+        <div className={styles.actionButtons}>
+          {proofUrl && (
+            <Link 
+              href={`/proof-decoder?extrinsic=${proofUrl.split('/').pop()}`}
+              className={styles.proofButton}
         >
-          Reset Game
-        </button>
+              View Proof
+            </Link>
+          )}
+        </div>
       </div>
 
       {lastResult && (
@@ -187,7 +221,13 @@ export const GameStatus: React.FC<GameStatusProps> = ({
       )}
 
       <div className={styles.inventory}>
+        <div className={styles.inventoryHeader}>
         <h3>Inventory</h3>
+          <div className={styles.weatherInfo}>
+            <span className={styles.weatherLabel}>Weather:</span>
+            <span className={styles.weatherValue}>{weather}</span>
+          </div>
+        </div>
         <div className={styles.inventoryGrid}>
           <div className={styles.inventoryItem}>
             <span>Lemons:</span>
@@ -221,6 +261,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             
             {error && <p className={styles.error}>{error}</p>}
             {status && <p className={styles.status}>{status}</p>}
+            {hasSubmittedProof && <p className={styles.status}>Proof has been submitted successfully!</p>}
             
             <div className={styles.proofLinks}>
               <a

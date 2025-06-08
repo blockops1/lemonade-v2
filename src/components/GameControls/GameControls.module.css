@@ -2,32 +2,46 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  padding: 1.5rem;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
   box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .inventory {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .inventory h3 {
   margin: 0;
   color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
 .inventory p {
   margin: 0;
   color: #1a1a1a;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
+  text-align: center;
+  padding: 0.5rem;
+  background: #e8f5e9;
+  border-radius: 8px;
+  color: #2e7d32;
 }
 
 .ingredientControl {
@@ -80,19 +94,29 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .pricing h3 {
   margin: 0;
   color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
 .pricing label {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: #495057;
+  font-weight: 500;
 }
 
 .pricing input {
@@ -109,47 +133,93 @@
   margin-top: 0.25rem;
 }
 
-.simulateButton {
-  padding: 1rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
+.priceSelect {
+  padding: 0.8rem 1.2rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  background: white;
+  color: #2c3e50;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: background-color 0.2s;
+  min-width: 120px;
+  text-align: center;
 }
 
-.simulateButton:hover:not(:disabled) {
-  background-color: #0056b3;
+.priceSelect:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  outline: none;
+}
+
+.priceSelect:disabled {
+  background: #f8f9fa;
+  cursor: not-allowed;
+  border-color: #dee2e6;
+}
+
+.ingredientButton {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ingredientButton:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+.simulateButton {
+  padding: 1.2rem;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
 .simulateButton:disabled {
-  background-color: #cccccc;
+  background: #cccccc;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .advertising {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 4px;
-  width: 100%;
-  box-sizing: border-box;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .advertising h3 {
   margin: 0;
   color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
 .advertising p {
   margin: 0;
   color: #495057;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
 .advertisingOptions {
@@ -158,6 +228,7 @@
   gap: 1rem;
   width: 100%;
   box-sizing: border-box;
+  margin-bottom: 1rem;
 }
 
 .adButton {
@@ -166,18 +237,17 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 1rem;
-  border: 2px solid #ced4da;
-  border-radius: 8px;
+  padding: 1.2rem;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
   background: white;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  height: 100px;
+  font-size: 1rem;
+  height: 120px;
   text-align: center;
   box-sizing: border-box;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .adButton::before {
@@ -187,54 +257,95 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #007bff;
+  background: linear-gradient(135deg, #007bff, #0056b3);
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.3s ease;
   z-index: 0;
 }
 
+.adButton.selected {
+  border-color: #007bff;
+  background: rgba(0, 123, 255, 0.1);
+}
+
 .adButton.selected::before {
-  opacity: 1;
+  opacity: 0.1;
 }
 
 .adButton:hover:not(:disabled) {
-  border-color: #007bff;
-  background: #f8f9fa;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #007bff;
 }
 
-.adButton.selected {
-  border-color: #0056b3;
+.adButton.unavailable {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  cursor: not-allowed;
+  position: relative;
 }
 
-.adButton.selected:hover:not(:disabled) {
-  border-color: #0056b3;
+.adButton.unavailable::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.05);
+  z-index: 1;
 }
 
-.adType, .adCost, .adEffect {
+.adButton.unavailable:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #dee2e6;
+}
+
+.adType {
+  font-weight: 600;
+  color: #2c3e50;
   position: relative;
   z-index: 1;
-  width: 100%;
-  text-align: center;
+}
+
+.adCost {
+  font-size: 0.9rem;
+  color: #666;
+  position: relative;
+  z-index: 1;
+}
+
+.adEffect {
+  font-size: 0.8rem;
+  color: #007bff;
+  position: relative;
+  z-index: 1;
 }
 
 .adButton.selected .adType,
 .adButton.selected .adCost,
 .adButton.selected .adEffect {
-  color: white;
+  color: #2c3e50;
 }
 
-.priceSelect {
-  padding: 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  width: 100px;
-  background-color: white;
-  cursor: pointer;
+.adButton.unavailable .adType,
+.adButton.unavailable .adCost,
+.adButton.unavailable .adEffect {
+  color: #adb5bd;
 }
 
-.priceSelect:disabled {
-  background-color: #e9ecef;
-  cursor: not-allowed;
+.unavailableLabel {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #dc3545;
+  font-weight: 500;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem;
+  border-top: 1px solid #dee2e6;
 } 

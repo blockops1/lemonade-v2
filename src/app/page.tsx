@@ -5,6 +5,7 @@ import ConnectWalletButton from '@/components/ConnectWalletButton';
 import { GameControls } from '@/components/GameControls';
 import { GameStatus } from '@/components/GameStatus';
 import { useLemonadeGame } from '@/hooks/useLemonadeGame';
+import { useGameProof } from '@/hooks/useGameProof';
 import styles from './page.module.css';
 import Image from 'next/image';
 import WalletInstructions from "@/components/WalletInstructions";
@@ -43,6 +44,7 @@ export default function Home() {
   
   const { selectedAccount, selectedWallet } = useAccount();
   const [gameState, gameActions] = useLemonadeGame();
+  const { generateAndVerifyProof, resetProofState } = useGameProof();
 
   const handleSimulateDay = () => {
     const result = gameActions.simulateDay();
@@ -68,16 +70,83 @@ export default function Home() {
     gameActions.resetGame();
     setLastResult(null);
     setGlobalProofUrl(null);
+    resetProofState();
   };
 
-  const handleGenerateProof = async () => {
+  const handleGenerateProof = async (): Promise<{ success: boolean; error?: string }> => {
+    console.log('\n=== STARTING PROOF GENERATION FROM PAGE ===');
+    console.log('Wallet state:', {
+      selectedAccount,
+      selectedWallet
+    });
+
     if (!selectedAccount || !selectedWallet) {
+      console.error('Cannot generate proof: No wallet connected');
       return {
         success: false,
         error: 'Please connect your wallet first'
       };
     }
-    return gameActions.generateAndVerifyProof();
+
+    if (!lastResult?.gameOver || !lastResult.finalScore) {
+      console.error('Cannot generate proof: Game is not over or no final score');
+      return {
+        success: false,
+        error: 'Game must be over to generate proof'
+      };
+    }
+
+    console.log('Game state for proof:', {
+      finalScore: lastResult.finalScore,
+      salesHistory: gameState.salesHistory
+    });
+
+    try {
+      console.log('Calling generateAndVerifyProof from useGameProof...');
+      const result = await generateAndVerifyProof({
+        dailyStates: gameState.salesHistory.map(day => [
+          day.revenue,
+          day.lemonsUsed,
+          day.sugarUsed,
+          day.iceUsed
+        ]),
+        dailyRecipes: gameState.salesHistory.map(day => [
+          day.recipe.lemonsPerCup,
+          day.recipe.sugarPerCup,
+          day.recipe.icePerCup
+        ]),
+        dailyPrices: gameState.salesHistory.map(day => day.price),
+        dailyWeather: gameState.salesHistory.map(day => {
+          const weatherMap: { [key: string]: number } = {
+            'Sunny': 0,
+            'Hot': 1,
+            'Cloudy': 2,
+            'Rainy': 3
+          };
+          return weatherMap[day.weather];
+        }),
+        dailyAdvertising: gameState.salesHistory.map(day => {
+          const advertisingMap: { [key: string]: number } = {
+            'none': 0,
+            'flyers': 1,
+            'social': 2,
+            'radio': 3
+          };
+          return advertisingMap[day.advertising];
+        }),
+        finalScore: lastResult.finalScore,
+        startingMoney: 1200 // $120.00 in 10-cent units
+      });
+
+      console.log('Proof generation result:', result);
+      return result;
+    } catch (error) {
+      console.error('Error in handleGenerateProof:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate proof'
+      };
+    }
   };
 
   return (
@@ -134,6 +203,19 @@ export default function Home() {
             >
               View Proof Decoder
             </a>
+            <a
+              href="/leaderboard"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View Leaderboard
+            </a>
+            <button
+              onClick={handleReset}
+              className={styles.resetButton}
+            >
+              Restart Game
+            </button>
           </div>
         </div>
       </div>
