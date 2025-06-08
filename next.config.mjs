@@ -2,10 +2,55 @@
 const nextConfig = {
     images: {
         remotePatterns: [],
-        unoptimized: false,
-        formats: ['image/avif', 'image/webp'],
-        deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-        imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+        unoptimized: true,
+    },
+    async headers() {
+        return [
+            {
+                source: '/:path*',
+                headers: [
+                    {
+                        key: 'Content-Security-Policy',
+                        value: `
+                            default-src 'self';
+                            script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com;
+                            style-src 'self' 'unsafe-inline';
+                            img-src 'self' data: blob:;
+                            font-src 'self';
+                            connect-src 'self' https://*.vercel-analytics.com;
+                            frame-ancestors 'none';
+                            form-action 'self';
+                            base-uri 'self';
+                            manifest-src 'self';
+                        `.replace(/\s+/g, ' ').trim()
+                    },
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'DENY'
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff'
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin'
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+                    },
+                    {
+                        key: 'Strict-Transport-Security',
+                        value: 'max-age=31536000; includeSubDomains'
+                    },
+                    {
+                        key: 'X-XSS-Protection',
+                        value: '1; mode=block'
+                    }
+                ]
+            }
+        ];
     },
     webpack: (config) => {
         // Add WASM support
@@ -30,59 +75,6 @@ const nextConfig = {
         });
 
         return config;
-    },
-    // Add security headers
-    async headers() {
-        return [
-            {
-                source: '/:path*',
-                headers: [
-                    {
-                        key: 'X-DNS-Prefetch-Control',
-                        value: 'on'
-                    },
-                    {
-                        key: 'Strict-Transport-Security',
-                        value: 'max-age=63072000; includeSubDomains; preload'
-                    },
-                    {
-                        key: 'X-XSS-Protection',
-                        value: '1; mode=block'
-                    },
-                    {
-                        key: 'X-Frame-Options',
-                        value: 'SAMEORIGIN'
-                    },
-                    {
-                        key: 'X-Content-Type-Options',
-                        value: 'nosniff'
-                    },
-                    {
-                        key: 'Referrer-Policy',
-                        value: 'origin-when-cross-origin'
-                    },
-                    {
-                        key: 'Permissions-Policy',
-                        value: 'camera=(), microphone=(), geolocation=()'
-                    }
-                ]
-            }
-        ];
-    },
-    // Add caching strategies
-    async rewrites() {
-        return [
-            {
-                source: '/api/:path*',
-                destination: '/api/:path*',
-                has: [
-                    {
-                        type: 'header',
-                        key: 'x-api-key',
-                    },
-                ],
-            },
-        ];
     },
 };
 
