@@ -2,8 +2,8 @@ import React from 'react';
 
 interface ErrorDetails {
   message: string;
-  stack?: string;
-  componentStack?: string;
+  stack?: string | null;
+  componentStack?: string | null;
   url?: string;
   userAgent?: string;
   timestamp: number;
@@ -31,7 +31,7 @@ class ErrorTracker {
       window.addEventListener('unhandledrejection', (event) => {
         this.trackError({
           message: event.reason?.message || 'Unhandled Promise Rejection',
-          stack: event.reason?.stack,
+          stack: event.reason?.stack || null,
           url: window.location.href,
           userAgent: navigator.userAgent,
           timestamp: Date.now(),
@@ -41,7 +41,7 @@ class ErrorTracker {
       window.addEventListener('error', (event) => {
         this.trackError({
           message: event.message,
-          stack: event.error?.stack,
+          stack: event.error?.stack || null,
           url: window.location.href,
           userAgent: navigator.userAgent,
           timestamp: Date.now(),
@@ -106,8 +106,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     errorTracker.trackError({
       message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
+      stack: error.stack || null,
+      componentStack: errorInfo.componentStack || null,
       url: typeof window !== 'undefined' ? window.location.href : undefined,
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
       timestamp: Date.now(),
