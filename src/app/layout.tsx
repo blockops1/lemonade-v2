@@ -27,7 +27,6 @@ export const metadata: Metadata = {
     description: "Run your own virtual lemonade stand in this fun web3 game! Connect your zkVerify wallet, manage resources, and compete to make the most profit in 7 days.",
     type: "website",
     url: "https://lemonade-game.vercel.app",
-    siteName: "Lemonade Stand Game",
     images: [
       {
         url: "/og-image.png",
@@ -42,7 +41,6 @@ export const metadata: Metadata = {
     title: "Lemonade Stand Game - A zkVerify Experience",
     description: "Run your own virtual lemonade stand in this fun web3 game! Connect your zkVerify wallet, manage resources, and compete to make the most profit in 7 days.",
     images: ["/og-image.png"],
-    creator: "@zkVerify",
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
 };
@@ -54,13 +52,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
-        <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
-        <link rel="icon" href="/favicon-48x48.png" sizes="48x48" type="image/png" />
-        <link rel="apple-touch-icon" href="/favicon-192x192.png" />
-      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.className}`}>
         <AccountProvider>
           {children}
