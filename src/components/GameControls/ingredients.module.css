@@ -2,11 +2,6 @@
   width: 32px;
   height: 32px;
   margin-right: 8px;
-  transition: transform 0.2s ease;
-}
-
-.ingredientIcon:hover {
-  transform: scale(1.1);
 }
 
 .lemonIcon {
@@ -49,32 +44,18 @@
   border-radius: 12px;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
   padding: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.ingredientControl:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
 .ingredientControl::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s ease;
+  display: none;
 }
 
 .ingredientControl:hover::before {
-  transform: translateX(100%);
+  display: none;
 }
 
 .ingredientLabel {
@@ -92,7 +73,6 @@
   border-radius: 8px;
   font-size: 1rem;
   text-align: center;
-  transition: all 0.2s ease;
   background: white;
 }
 
@@ -111,21 +91,13 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
-  transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.ingredientButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
 }
 
 .ingredientButton:disabled {
   background: #cccccc;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 .ingredientPrice {

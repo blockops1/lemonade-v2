@@ -141,7 +141,6 @@
   background: white;
   color: #2c3e50;
   cursor: pointer;
-  transition: all 0.2s ease;
   min-width: 120px;
   text-align: center;
 }
@@ -158,6 +157,24 @@
   border-color: #dee2e6;
 }
 
+.ingredientButton {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ingredientButton:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
 .simulateButton {
   padding: 1.2rem;
   background: linear-gradient(135deg, #4CAF50, #45a049);
@@ -167,21 +184,14 @@
   cursor: pointer;
   font-size: 1.2rem;
   font-weight: 700;
-  transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
-.simulateButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
-}
-
 .simulateButton:disabled {
   background: #cccccc;
   cursor: not-allowed;
-  transform: none;
   box-shadow: none;
 }
 
@@ -233,7 +243,6 @@
   background: white;
   cursor: pointer;
   font-size: 1rem;
-  transition: all 0.3s ease;
   height: 120px;
   text-align: center;
   box-sizing: border-box;
