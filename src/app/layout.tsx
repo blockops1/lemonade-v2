@@ -1,5 +1,23 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
+import { Analytics } from '@vercel/analytics/react';
+import { AccountProvider } from "@/context/AccountContext";
 import "./globals.css";
+import { Inter } from 'next/font/google';
+
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+});
+
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+});
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: "Lemonade Stand Game - A zkVerify Experience",
@@ -36,7 +54,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <head>
+        <link rel="icon" href="/images/lemons.jpg" type="image/jpeg" />
+        <link rel="apple-touch-icon" href="/images/lemons.jpg" />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${inter.className}`}>
+        <AccountProvider>
+          {children}
+          <Analytics />
+        </AccountProvider>
+      </body>
     </html>
   );
 }
