@@ -1,6 +1,10 @@
 let globalProofUrl: string | null = null;
 let listeners: Array<() => void> = [];
 
+// Global state for proof submission
+let hasSubmittedProof = false;
+const proofSubmissionListeners: (() => void)[] = [];
+
 export const setGlobalProofUrl = (url: string | null) => {
     console.log('[GlobalState] Setting new proof URL:', url);
     globalProofUrl = url;
@@ -22,4 +26,26 @@ export const subscribeToUrlChanges = (callback: () => void) => {
         console.log('[GlobalState] Removing subscription');
         listeners = listeners.filter(listener => listener !== callback);
     };
-}; 
+};
+
+export function setGlobalProofSubmitted(submitted: boolean) {
+  console.log('[GlobalState] Setting proof submission state:', submitted);
+  hasSubmittedProof = submitted;
+  proofSubmissionListeners.forEach(listener => listener());
+}
+
+export function getGlobalProofSubmitted() {
+  console.log('[GlobalState] Getting current proof submission state:', hasSubmittedProof);
+  return hasSubmittedProof;
+}
+
+export function subscribeToProofSubmission(callback: () => void) {
+  console.log('[GlobalState] Adding proof submission listener');
+  proofSubmissionListeners.push(callback);
+  return () => {
+    const index = proofSubmissionListeners.indexOf(callback);
+    if (index > -1) {
+      proofSubmissionListeners.splice(index, 1);
+    }
+  };
+} 

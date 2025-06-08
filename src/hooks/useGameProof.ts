@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useGroth16Proof } from './useGroth16Proof';
 import { useZkVerify, VerificationKey } from './useZkVerify';
 import { useAccount } from '@/context/AccountContext';
 import { ZkVerifyEvents } from 'zkverifyjs';
+import { setGlobalProofSubmitted, getGlobalProofSubmitted } from '@/utils/globalState';
 
 interface GameProofData {
   dailyStates: number[][];
@@ -27,13 +28,12 @@ interface EventData {
 export const useGameProof = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasSubmittedProof, setHasSubmittedProof] = useState(false);
   const { generateProof, verifyGameState } = useGroth16Proof();
   const { onVerifyProof, status, eventData, transactionResult, isInitializing } = useZkVerify();
   const { selectedAccount } = useAccount();
 
   const resetProofState = () => {
-    setHasSubmittedProof(false);
+    setGlobalProofSubmitted(false);
     setError(null);
     setIsGenerating(false);
   };
@@ -45,7 +45,7 @@ export const useGameProof = () => {
       hasDailyRecipes: gameData.dailyRecipes.length > 0
     });
 
-    if (hasSubmittedProof) {
+    if (getGlobalProofSubmitted()) {
       console.log('Proof already submitted, returning early');
       setError('A proof has already been submitted for this game');
       return {
@@ -150,8 +150,8 @@ export const useGameProof = () => {
             });
             return;
           }
-          console.log('Setting hasSubmittedProof to true');
-          setHasSubmittedProof(true);
+          console.log('Setting proof submission state to true');
+          setGlobalProofSubmitted(true);
           resolve({
             success: true
           });
@@ -181,7 +181,6 @@ export const useGameProof = () => {
   return {
     isGenerating,
     error,
-    hasSubmittedProof,
     status,
     eventData,
     transactionResult,

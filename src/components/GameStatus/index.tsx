@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './GameStatus.module.css';
 import { useGameProof } from '../../hooks/useGameProof';
 import { useProofUrl } from '@/hooks/useProofUrl';
+import { useProofSubmitted } from '@/hooks/useProofSubmitted';
 import Link from 'next/link';
 
 interface GameStatusProps {
@@ -74,19 +75,36 @@ export const GameStatus: React.FC<GameStatusProps> = ({
   onGenerateProof,
   salesHistory
 }) => {
-  const { generateAndVerifyProof, isGenerating, error, status, eventData, hasSubmittedProof } = useGameProof();
+  const { generateAndVerifyProof, isGenerating, error, status, eventData } = useGameProof();
   const [proofError, setProofError] = useState<string | null>(null);
   const proofUrl = useProofUrl();
+  const hasSubmittedProof = useProofSubmitted();
+
+  // Add effect to log button state changes
+  useEffect(() => {
+    console.log('GameStatus button state:', {
+      isGenerating,
+      hasSubmittedProof,
+      shouldBeDisabled: isGenerating || hasSubmittedProof,
+      proofUrl,
+      eventData,
+      buttonText: isGenerating ? 'Generating Proof...' : hasSubmittedProof ? 'Proof Submitted' : 'Submit Proof'
+    });
+  }, [isGenerating, hasSubmittedProof, proofUrl, eventData]);
+
+  // Add effect to handle proof submission state
+  useEffect(() => {
+    if (hasSubmittedProof) {
+      console.log('Proof submission detected in GameStatus');
+    }
+  }, [hasSubmittedProof]);
 
   const handleGenerateProof = async () => {
     console.log('\n=== STARTING PROOF GENERATION FROM GAME STATUS ===');
-    console.log('Game state:', {
-      day,
-      money,
-      inventory,
-      weather,
-      gameOver: lastResult?.gameOver,
-      finalScore: lastResult?.finalScore
+    console.log('Current state:', {
+      isGenerating,
+      hasSubmittedProof,
+      shouldBeDisabled: isGenerating || hasSubmittedProof
     });
 
     if (!lastResult?.gameOver || !lastResult.finalScore) {
@@ -243,6 +261,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             
             {error && <p className={styles.error}>{error}</p>}
             {status && <p className={styles.status}>{status}</p>}
+            {hasSubmittedProof && <p className={styles.status}>Proof has been submitted successfully!</p>}
             
             <div className={styles.proofLinks}>
               <a
