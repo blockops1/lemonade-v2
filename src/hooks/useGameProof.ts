@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGroth16Proof } from './useGroth16Proof';
 import { useZkVerify, VerificationKey } from './useZkVerify';
 import { useAccount } from '@/context/AccountContext';
+import { ZkVerifyEvents } from 'zkverifyjs';
 
 interface GameProofData {
   dailyStates: number[][];
@@ -13,12 +14,18 @@ interface GameProofData {
   startingMoney: number;
 }
 
+interface EventData {
+  blockHash?: string;
+  transactionHash?: string;
+  [key: string]: unknown;
+}
+
 export const useGameProof = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSubmittedProof, setHasSubmittedProof] = useState(false);
   const { generateProof, verifyGameState } = useGroth16Proof();
-  const { onVerifyProof, status, eventData, transactionResult } = useZkVerify();
+  const { onVerifyProof, status, eventData, transactionResult, isInitializing } = useZkVerify();
   const { selectedAccount } = useAccount();
 
   const resetProofState = () => {
@@ -40,6 +47,15 @@ export const useGameProof = () => {
       return {
         success: false,
         error: 'A proof has already been submitted for this game'
+      };
+    }
+
+    if (isInitializing) {
+      console.log('Session is initializing, please wait');
+      setError('Session is initializing, please wait');
+      return {
+        success: false,
+        error: 'Session is initializing, please wait'
       };
     }
 
@@ -110,19 +126,34 @@ export const useGameProof = () => {
       }
 
       console.log('Calling onVerifyProof with score:', gameData.finalScore);
-      await onVerifyProof(
+      const { events } = await onVerifyProof(
         JSON.stringify(proofResult.proof),
         proofResult.publicSignals,
-        "0xc22f5b62480219ff00984575163c99cb32649bd903b041237cda7c16a4977c46", // Use the hardcoded hash
+        "0xc22f5b62480219ff00984575163c99cb32649bd903b041237cda7c16a4977c46",
         gameData.finalScore
       );
-      setHasSubmittedProof(true);
 
-      return {
-        success: true,
-        proof: proofResult.proof,
-        publicSignals: proofResult.publicSignals
-      };
+      // Wait for the proof to be included in a block before considering it submitted
+      return new Promise((resolve) => {
+        events.on(ZkVerifyEvents.IncludedInBlock, async (data: EventData) => {
+          console.log('Proof included in block:', data);
+          setHasSubmittedProof(true);
+          resolve({
+            success: true,
+            proof: proofResult.proof,
+            publicSignals: proofResult.publicSignals
+          });
+        });
+
+        events.on('error', (error: Error) => {
+          console.error('Error during proof submission:', error);
+          setError(error.message);
+          resolve({
+            success: false,
+            error: error.message
+          });
+        });
+      });
     } catch (err) {
       console.error('Error in generateAndVerifyProof:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate or verify proof');
