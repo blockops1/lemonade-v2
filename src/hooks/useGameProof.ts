@@ -16,7 +16,11 @@ interface GameProofData {
 
 interface EventData {
   blockHash?: string;
+  txHash?: string;
   transactionHash?: string;
+  status?: string;
+  proofType?: string;
+  domainId?: number;
   [key: string]: unknown;
 }
 
@@ -134,14 +138,22 @@ export const useGameProof = () => {
       );
 
       // Wait for the proof to be included in a block before considering it submitted
-      return new Promise((resolve) => {
+      return new Promise<{ success: boolean; error?: string }>((resolve) => {
         events.on(ZkVerifyEvents.IncludedInBlock, async (data: EventData) => {
           console.log('Proof included in block:', data);
+          const txHash = data.txHash || data.transactionHash;
+          if (!txHash) {
+            console.error('No transaction hash in IncludedInBlock event');
+            resolve({
+              success: false,
+              error: 'No transaction hash in IncludedInBlock event'
+            });
+            return;
+          }
+          console.log('Setting hasSubmittedProof to true');
           setHasSubmittedProof(true);
           resolve({
-            success: true,
-            proof: proofResult.proof,
-            publicSignals: proofResult.publicSignals
+            success: true
           });
         });
 

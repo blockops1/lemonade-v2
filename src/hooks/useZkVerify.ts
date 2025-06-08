@@ -5,7 +5,11 @@ import { setGlobalProofUrl, getGlobalProofUrl, subscribeToUrlChanges } from '@/u
 
 interface EventData {
     blockHash?: string;
+    txHash?: string;
     transactionHash?: string;
+    status?: string;
+    proofType?: string;
+    domainId?: number;
     [key: string]: unknown;
 }
 
@@ -201,12 +205,19 @@ export function useZkVerify() {
 
             // Listen for verification events
             verifyEvents.on(ZkVerifyEvents.IncludedInBlock, async (data: EventData) => {
-                const proofUrl = `https://zkverify-testnet.subscan.io/extrinsic/${data.transactionHash}`;
+                console.log('IncludedInBlock event data:', data);
+                const txHash = data.txHash || data.transactionHash;
+                if (!txHash) {
+                    console.error('No transaction hash in IncludedInBlock event');
+                    return;
+                }
+                const proofUrl = `https://zkverify-testnet.subscan.io/extrinsic/${txHash}`;
+                console.log('Setting proof URL:', proofUrl);
                 setGlobalProofUrl(proofUrl);
                 setStatus('Proof included in block');
                 setEventData({
                     blockHash: data.blockHash,
-                    transactionHash: data.transactionHash
+                    transactionHash: txHash
                 });
 
                 if (score !== undefined) {
@@ -215,11 +226,13 @@ export function useZkVerify() {
             });
 
             verifyEvents.on(ZkVerifyEvents.Finalized, (data: TransactionResult) => {
+                console.log('Finalized event data:', data);
                 setStatus('Proof verified');
                 setTransactionResult(data);
             });
 
             verifyEvents.on('error', (error: Error) => {
+                console.error('Error event:', error);
                 setError(error.message);
                 setStatus('Verification failed');
             });

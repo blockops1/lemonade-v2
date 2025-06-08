@@ -74,20 +74,30 @@
 }
 
 .proofButton {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  transition: background-color 0.2s;
-  background-color: #007bff;
-  color: white;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
   border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #6c5ce7;
+  color: white;
 }
 
 .proofButton:hover {
-  background-color: #0056b3;
+  background-color: #5b4bc4;
+}
+
+.proofButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.proofButton:disabled:hover {
+  background-color: #cccccc;
 }
 
 .lastResult {
@@ -163,15 +173,6 @@
   align-items: center;
   gap: 1rem;
   margin-top: 1rem;
-}
-
-.proofButton:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.proofButton:disabled:hover {
-  background-color: #cccccc;
 }
 
 .proofLinks {

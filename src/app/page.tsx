@@ -73,7 +73,7 @@ export default function Home() {
     resetProofState();
   };
 
-  const handleGenerateProof = async () => {
+  const handleGenerateProof = async (): Promise<{ success: boolean; error?: string }> => {
     console.log('\n=== STARTING PROOF GENERATION FROM PAGE ===');
     console.log('Wallet state:', {
       selectedAccount,
