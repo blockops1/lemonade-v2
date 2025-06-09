@@ -46,7 +46,8 @@
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.15",
     "ts-node": "^10.9.2",
-    "typescript": "5"
+    "typescript": "5",
+    "worker-loader": "^3.0.8"
   },
   "engines": {
     "node": ">=18.0.0"

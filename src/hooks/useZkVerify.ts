@@ -49,25 +49,37 @@ export function useZkVerify() {
     // Initialize session when wallet changes
     const initializeSession = useCallback(async () => {
         if (!selectedWallet || !selectedAccount) {
-            console.log('Cannot initialize session: No wallet or account selected');
+            console.log('Cannot initialize session: No wallet or account selected', {
+                selectedWallet,
+                selectedAccount
+            });
             return null;
         }
 
         if (isInitializing) {
-            console.log('Session initialization already in progress');
+            console.log('Session initialization already in progress', {
+                currentWalletKey: initializationAttempted.current
+            });
             return null;
         }
 
         // Check if we've already attempted initialization for this wallet/account combination
         const currentWalletKey = `${selectedWallet}-${selectedAccount}`;
         if (initializationAttempted.current === currentWalletKey) {
-            console.log('Session initialization already attempted for this wallet/account');
+            console.log('Session initialization already attempted for this wallet/account', {
+                currentWalletKey,
+                hasSession: !!session
+            });
             return session;
         }
 
         try {
             setIsInitializing(true);
-            console.log('Initializing new session for wallet:', selectedWallet);
+            console.log('Starting new session initialization', {
+                wallet: selectedWallet,
+                account: selectedAccount,
+                currentWalletKey
+            });
             
             // Clear any existing session
             if (session) {
@@ -75,6 +87,7 @@ export function useZkVerify() {
                 setSession(null);
             }
 
+            console.log('Creating new zkVerify session...');
             const newSession = await zkVerifySession.start()
                 .Volta()
                 .withWallet({
@@ -82,12 +95,21 @@ export function useZkVerify() {
                     accountAddress: selectedAccount,
                 });
             
-            console.log('Session initialized successfully');
+            console.log('Session initialized successfully', {
+                sessionId: newSession,
+                wallet: selectedWallet,
+                account: selectedAccount
+            });
             setSession(newSession);
             initializationAttempted.current = currentWalletKey;
             return newSession;
         } catch (err) {
-            console.error('Failed to initialize session:', err);
+            console.error('Failed to initialize session:', {
+                error: err,
+                wallet: selectedWallet,
+                account: selectedAccount,
+                currentWalletKey
+            });
             setError(err instanceof Error ? err.message : 'Failed to initialize session');
             return null;
         } finally {

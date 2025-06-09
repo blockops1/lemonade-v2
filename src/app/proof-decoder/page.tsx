@@ -25,6 +25,13 @@ function ProofDecoderContent() {
   useEffect(() => {
     const fetchProof = async () => {
       try {
+        // Check if we're on the client side and searchParams is available
+        if (typeof window === 'undefined' || !searchParams) {
+          setError('Invalid search parameters');
+          setLoading(false);
+          return;
+        }
+
         const extrinsicId = searchParams.get('extrinsic');
         if (!extrinsicId) {
           setError('No proof extrinsic ID provided');
@@ -67,6 +74,11 @@ function ProofDecoderContent() {
     try {
       setCopyStatus('copying');
       
+      // Check if we're on the client side and searchParams is available
+      if (typeof window === 'undefined' || !searchParams) {
+        throw new Error('Invalid search parameters');
+      }
+
       // Get the extrinsic ID from the URL parameters
       const extrinsicId = searchParams.get('extrinsic');
       if (!extrinsicId) {

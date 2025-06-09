@@ -2,63 +2,41 @@ import rateLimit from 'express-rate-limit';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Create a rate limiter configuration
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.',
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
+// Simple in-memory store for rate limiting
+// In production, you should use a more persistent solution like Redis
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
-// Middleware function to apply rate limiting
-export async function rateLimitMiddleware(request: NextRequest) {
-    try {
-        // Get the client's IP address
-        const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
-        
-        // Apply rate limiting
-        await new Promise((resolve, reject) => {
-            limiter({
-                ip,
-                headers: Object.fromEntries(request.headers),
-                method: request.method,
-                path: request.nextUrl.pathname,
-            } as any, {
-                statusCode: 429,
-                setHeader: (name: string, value: string) => {
-                    // Headers will be set by Next.js
-                },
-                end: () => {
-                    reject(new Error('Rate limit exceeded'));
-                },
-            } as any, resolve);
-        });
-
-        return NextResponse.next();
-    } catch (error) {
-        // If rate limit is exceeded, return a 429 response
-        return new NextResponse('Too many requests, please try again later.', {
-            status: 429,
-            headers: {
-                'Content-Type': 'text/plain',
-                'Retry-After': '900', // 15 minutes in seconds
-            },
-        });
-    }
-}
-
-// Export a function to create rate limiters with custom options
-export function createRateLimiter(options: {
+export const createRateLimitMiddleware = (options: {
     windowMs?: number;
     max?: number;
-    message?: string;
-}) {
-    return rateLimit({
-        windowMs: options.windowMs || 15 * 60 * 1000,
-        max: options.max || 100,
-        message: options.message || 'Too many requests from this IP, please try again later.',
-        standardHeaders: true,
-        legacyHeaders: false,
-    });
-} 
+}) => {
+    const { windowMs = 15 * 60 * 1000, max = 100 } = options;
+
+    return async function rateLimitMiddleware(request: NextRequest) {
+        // Get the IP address from the request
+        const ip = request.ip || 'unknown';
+        const key = `rate-limit:${ip}`;
+
+        // Get the current count from the request headers
+        const currentCount = parseInt(request.headers.get('x-rate-limit-count') || '0', 10);
+
+        // Check if the request should be rate limited
+        if (currentCount >= max) {
+            return new NextResponse('Too Many Requests', {
+                status: 429,
+                headers: {
+                    'Retry-After': Math.ceil(windowMs / 1000).toString(),
+                },
+            });
+        }
+
+        // Increment the count and set the headers
+        const response = NextResponse.next();
+        response.headers.set('x-rate-limit-count', (currentCount + 1).toString());
+        response.headers.set('x-rate-limit-limit', max.toString());
+        response.headers.set('x-rate-limit-remaining', (max - currentCount - 1).toString());
+        response.headers.set('x-rate-limit-reset', (Date.now() + windowMs).toString());
+
+        return response;
+    };
+}; 

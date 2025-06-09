@@ -5,15 +5,10 @@ import { corsMiddleware } from './middleware/cors';
 import { createValidationMiddleware } from './middleware/validation';
 import { proofQuerySchema, leaderboardEntrySchema } from './middleware/validation';
 
-// Create rate limiters with different configurations
-const apiRateLimiter = createRateLimitMiddleware({
-  windowMs: 60 * 1000, // 1 minute
-  max: 100, // 100 requests per minute
-});
-
-const proofRateLimiter = createRateLimitMiddleware({
-  windowMs: 60 * 1000, // 1 minute
-  max: 10, // 10 requests per minute
+// Create rate limit middleware
+const rateLimitMiddleware = createRateLimitMiddleware({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
 });
 
 export async function middleware(request: NextRequest) {
@@ -23,20 +18,10 @@ export async function middleware(request: NextRequest) {
     return corsResponse;
   }
 
-  // Apply rate limiting based on the path
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    const rateLimitResponse = await apiRateLimiter(request);
-    if (rateLimitResponse.status === 429) {
-      return rateLimitResponse;
-    }
-  }
-
-  // Apply specific rate limiting for proof generation
-  if (request.nextUrl.pathname === '/api/proof' && request.method === 'GET') {
-    const rateLimitResponse = await proofRateLimiter(request);
-    if (rateLimitResponse.status === 429) {
-      return rateLimitResponse;
-    }
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimitMiddleware(request);
+  if (rateLimitResponse.status === 429) {
+    return rateLimitResponse;
   }
 
   // Apply validation based on the path and method
