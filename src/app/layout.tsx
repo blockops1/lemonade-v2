@@ -20,8 +20,11 @@ const geistMono = localFont({
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Lemonade Stand Game - A zkVerify Experience",
-  description: "Run your own virtual lemonade stand in this fun web3 game! Connect your zkVerify wallet, manage resources, and compete to make the most profit in 7 days.",
+  title: "Lemonade",
+  description: "Lemonade - A decentralized marketplace for AI services",
+  icons: {
+    icon: '/api/favicon',
+  },
   openGraph: {
     title: "Lemonade Stand Game - A zkVerify Experience",
     description: "Run your own virtual lemonade stand in this fun web3 game! Connect your zkVerify wallet, manage resources, and compete to make the most profit in 7 days.",
@@ -47,11 +50,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
+      <head>
+        <link rel="shortcut icon" href="/api/favicon" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${inter.className}`}>
         <AccountProvider>
           {children}

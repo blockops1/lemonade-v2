@@ -10,6 +10,7 @@ import styles from './page.module.css';
 import Image from 'next/image';
 import WalletInstructions from "@/components/WalletInstructions";
 import { setGlobalProofUrl } from '@/utils/globalState';
+import { testGameData } from '@/utils/testProof';
 
 export default function Home() {
   const [lastResult, setLastResult] = useState<{
@@ -149,6 +150,27 @@ export default function Home() {
     }
   };
 
+  const handleTestProof = async () => {
+    console.log('\n=== STARTING TEST PROOF GENERATION ===');
+    console.log('Wallet state:', {
+      selectedAccount,
+      selectedWallet
+    });
+
+    if (!selectedAccount || !selectedWallet) {
+      console.error('Cannot generate test proof: No wallet connected');
+      return;
+    }
+
+    try {
+      console.log('Generating test proof with data:', testGameData);
+      const result = await generateAndVerifyProof(testGameData);
+      console.log('Test proof generation result:', result);
+    } catch (error) {
+      console.error('Error in handleTestProof:', error);
+    }
+  };
+
   return (
     <main>
       <WalletInstructions />
@@ -215,6 +237,16 @@ export default function Home() {
               className={styles.resetButton}
             >
               Restart Game
+            </button>
+          </div>
+
+          <div className={styles.testSection}>
+            <button
+              onClick={handleTestProof}
+              className={styles.testButton}
+              disabled={!selectedAccount || !selectedWallet}
+            >
+              Generate Test Proof
             </button>
           </div>
         </div>

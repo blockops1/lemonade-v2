@@ -159,3 +159,30 @@
   color: #c82333;
   background-color: #f8d7da;
 }
+
+.testSection {
+  margin-top: 2rem;
+  padding: 1rem;
+  border-top: 1px solid #eaeaea;
+  text-align: center;
+}
+
+.testButton {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.testButton:hover {
+  background-color: #357abd;
+}
+
+.testButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}

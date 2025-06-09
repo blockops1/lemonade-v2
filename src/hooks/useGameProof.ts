@@ -30,7 +30,7 @@ export const useGameProof = () => {
   const [error, setError] = useState<string | null>(null);
   const { generateProof, verifyGameState } = useGroth16Proof();
   const { onVerifyProof, status, eventData, transactionResult, isInitializing } = useZkVerify();
-  const { selectedAccount } = useAccount();
+  const { selectedAccount, selectedWallet } = useAccount();
 
   const resetProofState = () => {
     setGlobalProofSubmitted(false);
@@ -39,10 +39,13 @@ export const useGameProof = () => {
   };
 
   const generateAndVerifyProof = async (gameData: GameProofData) => {
+    console.log('=== PROOF GENERATION START ===');
     console.log('generateAndVerifyProof called with gameData:', {
       finalScore: gameData.finalScore,
       hasDailyStates: gameData.dailyStates.length > 0,
-      hasDailyRecipes: gameData.dailyRecipes.length > 0
+      hasDailyRecipes: gameData.dailyRecipes.length > 0,
+      dailyStates: gameData.dailyStates,
+      dailyRecipes: gameData.dailyRecipes
     });
 
     if (getGlobalProofSubmitted()) {
@@ -55,7 +58,11 @@ export const useGameProof = () => {
     }
 
     if (isInitializing) {
-      console.log('Session is initializing, please wait');
+      console.log('Session is initializing, please wait', {
+        isInitializing,
+        selectedAccount,
+        selectedWallet
+      });
       setError('Session is initializing, please wait');
       return {
         success: false,
@@ -91,7 +98,9 @@ export const useGameProof = () => {
       console.log('Proof generation result:', {
         isValid: proofResult.isValid,
         hasProof: !!proofResult.proof,
-        hasPublicSignals: !!proofResult.publicSignals
+        hasPublicSignals: !!proofResult.publicSignals,
+        proofSize: proofResult.proof ? JSON.stringify(proofResult.proof).length : 0,
+        signalsSize: proofResult.publicSignals ? proofResult.publicSignals.length : 0
       });
 
       if (!proofResult.isValid) {
@@ -102,6 +111,12 @@ export const useGameProof = () => {
       // Import verification key
       console.log('Importing verification key');
       const vkModule = await fetch('/circuits/groth16/build/lemonade_basic_verification_key.json').then(res => res.json());
+      console.log('Verification key imported:', {
+        protocol: vkModule.protocol,
+        curve: vkModule.curve,
+        nPublic: vkModule.nPublic
+      });
+
       const vk: VerificationKey = {
         protocol: vkModule.protocol,
         curve: vkModule.curve,
@@ -175,6 +190,7 @@ export const useGameProof = () => {
       };
     } finally {
       setIsGenerating(false);
+      console.log('=== PROOF GENERATION END ===');
     }
   };
 

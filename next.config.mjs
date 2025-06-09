@@ -1,10 +1,100 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        remotePatterns: [],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'lemonade-*.vercel.app',
+            },
+        ],
         unoptimized: true,
+        deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+        imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+        formats: ['image/webp'],
+        minimumCacheTTL: 60,
+        dangerouslyAllowSVG: true,
     },
-    webpack: (config) => {
+    async rewrites() {
+        console.log('[Next.js Config] Setting up rewrites');
+        return [
+            {
+                source: '/favicon.ico',
+                destination: '/public/favicon.ico',
+            },
+        ];
+    },
+    async headers() {
+        console.log('[Next.js Config] Setting up headers');
+        return [
+            {
+                source: '/:path*',
+                headers: [
+                    {
+                        key: 'Content-Security-Policy',
+                        value: `
+                            default-src 'self';
+                            script-src 'self' 'unsafe-eval' 'unsafe-inline';
+                            style-src 'self' 'unsafe-inline';
+                            img-src 'self' data: https: blob:;
+                            font-src 'self';
+                            object-src 'none';
+                            base-uri 'self';
+                            form-action 'self';
+                            frame-ancestors 'none';
+                            block-all-mixed-content;
+                            upgrade-insecure-requests;
+                            worker-src 'self' blob:;
+                            connect-src 'self' 
+                                https://*.vercel-analytics.com 
+                                wss://*.zkverify.io 
+                                https://*.zkverify.io 
+                                wss://zkverify-testnet.subscan.io 
+                                https://zkverify-testnet.subscan.io
+                                https://*.subscan.io;
+                        `.replace(/\s+/g, ' ').trim()
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff'
+                    },
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'DENY'
+                    },
+                    {
+                        key: 'X-XSS-Protection',
+                        value: '1; mode=block'
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin'
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=()'
+                    },
+                    {
+                        key: 'Strict-Transport-Security',
+                        value: 'max-age=31536000; includeSubDomains'
+                    }
+                ]
+            },
+            {
+                source: '/favicon.ico',
+                headers: [
+                    {
+                        key: 'Content-Type',
+                        value: 'image/x-icon',
+                    },
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=31536000',
+                    },
+                ],
+            },
+        ];
+    },
+    webpack: (config, { isServer }) => {
         // Add WASM support
         config.experiments = {
             ...config.experiments,
@@ -26,7 +116,43 @@ const nextConfig = {
             type: 'json',
         });
 
+        // Handle web workers and Node.js polyfills
+        if (!isServer) {
+            config.resolve.fallback = {
+                ...config.resolve.fallback,
+                fs: false,
+                path: false,
+                crypto: false,
+                stream: false,
+                buffer: false,
+                util: false,
+                assert: false,
+                http: false,
+                https: false,
+                os: false,
+                url: false,
+            };
+        }
+
+        // Ignore web-worker warnings
+        config.ignoreWarnings = [
+            { module: /node_modules\/web-worker/ },
+            { message: /Critical dependency: the request of a dependency is an expression/ },
+        ];
+
         return config;
+    },
+    // Configure runtime to handle web workers
+    experimental: {
+        esmExternals: 'loose',
+    },
+    // Ensure static files are served correctly
+    async rewrites() {
+        return [];
+    },
+    // Configure static file serving
+    async redirects() {
+        return [];
     },
 };
 
