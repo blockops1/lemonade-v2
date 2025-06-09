@@ -6,9 +6,9 @@
   "license": "ISC",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "NODE_ENV=development next dev",
+    "build": "NODE_ENV=production next build",
+    "start": "NODE_ENV=production next start",
     "lint": "next lint",
     "test:proof": "ts-node src/scripts/test_proof.ts",
     "typecheck": "tsc --noEmit"
