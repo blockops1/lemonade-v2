@@ -1,38 +1,75 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { rateLimitMiddleware } from './middleware/rateLimit';
-import { createValidationMiddleware, proofQuerySchema, leaderboardEntrySchema } from './middleware/validation';
+import { createRateLimitMiddleware } from './middleware/rateLimit';
 import { corsMiddleware } from './middleware/cors';
+import { createValidationMiddleware } from './middleware/validation';
+import { proofQuerySchema, leaderboardEntrySchema } from './middleware/validation';
+
+// Create rate limiters with different configurations
+const apiRateLimiter = createRateLimitMiddleware({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute
+});
+
+const proofRateLimiter = createRateLimitMiddleware({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 10 requests per minute
+});
 
 export async function middleware(request: NextRequest) {
-    // Only apply middleware to API routes
-    if (request.nextUrl.pathname.startsWith('/api/')) {
-        // Apply CORS first
-        const corsResponse = await corsMiddleware(request);
-        if (corsResponse.status !== 200 && corsResponse.status !== 204) {
-            return corsResponse;
-        }
+  // Apply CORS middleware first
+  const corsResponse = await corsMiddleware(request);
+  if (corsResponse.status !== 200) {
+    return corsResponse;
+  }
 
-        // Apply rate limiting
-        const rateLimitResponse = await rateLimitMiddleware(request);
-        if (rateLimitResponse.status !== 200) {
-            return rateLimitResponse;
-        }
-
-        // Apply validation based on the route
-        if (request.nextUrl.pathname.startsWith('/api/proof')) {
-            return createValidationMiddleware(proofQuerySchema)(request);
-        } else if (request.nextUrl.pathname.startsWith('/api/leaderboard') && request.method === 'POST') {
-            return createValidationMiddleware(leaderboardEntrySchema)(request);
-        }
+  // Apply rate limiting based on the path
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    const rateLimitResponse = await apiRateLimiter(request);
+    if (rateLimitResponse.status === 429) {
+      return rateLimitResponse;
     }
+  }
 
-    return NextResponse.next();
+  // Apply specific rate limiting for proof generation
+  if (request.nextUrl.pathname === '/api/proof' && request.method === 'GET') {
+    const rateLimitResponse = await proofRateLimiter(request);
+    if (rateLimitResponse.status === 429) {
+      return rateLimitResponse;
+    }
+  }
+
+  // Apply validation based on the path and method
+  if (request.nextUrl.pathname === '/api/proof' && request.method === 'GET') {
+    const validationResponse = await createValidationMiddleware(proofQuerySchema)(request);
+    if (validationResponse.status === 400) {
+      return validationResponse;
+    }
+  }
+
+  if (request.nextUrl.pathname === '/api/leaderboard' && request.method === 'POST') {
+    const validationResponse = await createValidationMiddleware(leaderboardEntrySchema)(request);
+    if (validationResponse.status === 400) {
+      return validationResponse;
+    }
+  }
+
+  // Log favicon requests
+  if (request.nextUrl.pathname === '/favicon.ico') {
+    console.log('[Middleware] Favicon request:', {
+      url: request.url,
+      method: request.method,
+      headers: Object.fromEntries(request.headers.entries()),
+    });
+  }
+
+  return NextResponse.next();
 }
 
 // Configure which routes to run middleware on
 export const config = {
-    matcher: [
-        '/api/:path*',
-    ],
+  matcher: [
+    '/api/:path*',
+    '/favicon.ico',
+  ],
 }; 
