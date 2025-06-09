@@ -1,6 +1,7 @@
 {
-  "name": "zkverify-starter-template",
-  "version": "0.1.0",
+  "name": "lemonade-v2",
+  "version": "0.1.1",
+  "private": true,
   "author": "Horizen Labs <info@horizenlabs.io>",
   "license": "ISC",
   "type": "module",
