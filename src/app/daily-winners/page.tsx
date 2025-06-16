@@ -1,71 +1,62 @@
-import { Metadata } from 'next';
-import styles from './DailyWinners.module.css';
-import { query } from '@/utils/db';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Top 12 Daily Lemonade Stand Winners',
-  description: 'View the top 12 winners from the last 7 days',
-};
+import { useEffect, useState } from 'react';
+import styles from './DailyWinners.module.css';
+import Link from 'next/link';
 
 interface DailyWinner {
   date_timestamp: string;
   player_address: string;
-  player_name: string | null;
+  player_name: string;
   score: number;
   rank: number;
 }
 
-async function getDailyWinners() {
-  try {
-    // Get winners from the last 7 days, ensuring no duplicates
-    const result = await query<DailyWinner>`
-      WITH distinct_winners AS (
-        SELECT DISTINCT ON (date_timestamp, player_address)
-          date_timestamp,
-          player_address,
-          player_name,
-          score::numeric as score,
-          rank
-        FROM daily_winners
-        WHERE date_timestamp >= NOW() - INTERVAL '7 days'
-        ORDER BY date_timestamp DESC, player_address, rank ASC
-      )
-      SELECT *
-      FROM distinct_winners
-      ORDER BY date_timestamp DESC, rank ASC
-    `;
+// Helper function to format address
+const formatAddress = (address: string) => {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+};
 
-    // Convert score to number and ensure it's valid
-    return result.map(row => ({
-      ...row,
-      score: Number(row.score) || 0
-    }));
-  } catch (error) {
-    console.error('Error in getDailyWinners:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
-    }
-    return [];
+// Helper function to format score
+const formatScore = (score: number) => {
+  // Convert from 10-cent units to dollars
+  const dollars = (score * 0.1).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  return `$${dollars}`;
+};
+
+export default function DailyWinners() {
+  const [winners, setWinners] = useState<DailyWinner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchWinners = async () => {
+      try {
+        const response = await fetch('/api/daily-winners');
+        if (!response.ok) {
+          throw new Error('Failed to fetch daily winners');
+        }
+        const data = await response.json();
+        setWinners(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWinners();
+  }, []);
+
+  if (loading) {
+    return <div className={styles.loading}>Loading daily winners...</div>;
   }
-}
 
-export default async function DailyWinnersPage() {
-  const winners = await getDailyWinners();
-
-  if (winners.length === 0) {
-    return (
-      <div className={styles.container}>
-        <h1 className={styles.title}>Daily Winners</h1>
-        <div className={styles.noData}>
-          <p>No winners data available yet.</p>
-          <p>Check back at noon UTC!</p>
-        </div>
-      </div>
-    );
+  if (error) {
+    return <div className={styles.error}>{error}</div>;
   }
 
   // Group winners by date
@@ -76,7 +67,6 @@ export default async function DailyWinnersPage() {
       month: 'long',
       day: 'numeric'
     });
-    
     if (!acc[date]) {
       acc[date] = [];
     }
@@ -86,32 +76,53 @@ export default async function DailyWinnersPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Daily Winners</h1>
-      {Object.entries(winnersByDate).map(([date, dateWinners]) => (
-        <div key={date} className={styles.dailySection}>
-          <h2 className={styles.dateTitle}>{date}</h2>
-          <div className={styles.winnersList}>
-            {dateWinners.map((winner, index) => (
-              <div 
-                key={`${winner.date_timestamp}-${winner.player_address}-${index}`} 
-                className={styles.winnerItem}
-              >
-                <span className={styles.rank}>#{winner.rank}</span>
-                <span className={styles.name}>
-                  {winner.player_name || 
-                    `${winner.player_address.slice(0, 6)}...${winner.player_address.slice(-4)}`}
-                </span>
-                <span className={styles.score}>
-                  ${(winner.score / 10).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}
-                </span>
-              </div>
-            ))}
+      <h1>Lemonade Stand Daily Winners</h1>
+      
+      <div className={styles.navigation}>
+        <Link href="/" className={styles.homeLink}>
+          ← Back to Game
+        </Link>
+      </div>
+
+      <div className={styles.tableContainer}>
+        {Object.entries(winnersByDate).map(([date, dateWinners]) => (
+          <div key={date} className={styles.dailySection}>
+            <h2>{date}</h2>
+            <table className={styles.winnersTable}>
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Player</th>
+                  <th>Score</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dateWinners.map((winner) => (
+                  <tr key={`${winner.date_timestamp}-${winner.player_address}`}>
+                    <td>
+                      <div className={`${styles.rankBadge} ${winner.rank <= 3 ? styles.top3 : ''}`}>
+                        {winner.rank}
+                      </div>
+                    </td>
+                    <td>{winner.player_name || formatAddress(winner.player_address)}</td>
+                    <td>{formatScore(winner.score)}</td>
+                    <td>
+                      <span className={styles.verifiedLink}>Verified</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-      ))}
+        ))}
+        {Object.keys(winnersByDate).length === 0 && (
+          <div className={styles.loading}>
+            <p>No daily winners yet</p>
+            <p>Check back after the first daily update!</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 } 

@@ -46,14 +46,28 @@ export async function GET() {
     
     // Get the last 7 days of winners
     const result = await sql`
+      WITH ranked_winners AS (
+        SELECT 
+          date_timestamp,
+          player_address,
+          player_name,
+          score,
+          rank,
+          ROW_NUMBER() OVER (
+            PARTITION BY date_timestamp, player_address 
+            ORDER BY rank ASC
+          ) as rn
+        FROM daily_winners
+        WHERE date_timestamp >= NOW() - INTERVAL '7 days'
+      )
       SELECT 
         date_timestamp,
         player_address,
         player_name,
         score,
         rank
-      FROM daily_winners
-      WHERE date_timestamp >= NOW() - INTERVAL '7 days'
+      FROM ranked_winners
+      WHERE rn = 1
       ORDER BY date_timestamp DESC, rank ASC
     `;
 
