@@ -1,47 +1,40 @@
-import { sql } from '@vercel/postgres';
-import { config } from 'dotenv';
-import { resolve } from 'path';
+import { neon } from '@neondatabase/serverless';
+import dotenv from 'dotenv';
 
-// Load environment variables from .env.local
-config({ path: resolve(process.cwd(), '.env.local') });
+// Load environment variables
+dotenv.config({ path: '.env.local' });
 
-// Set POSTGRES_URL from DATABASE_URL
-process.env.POSTGRES_URL = process.env.DATABASE_URL;
+// Verify POSTGRES_URL is set
+if (!process.env.POSTGRES_URL) {
+  throw new Error('POSTGRES_URL environment variable is not set');
+}
 
 async function checkTables() {
   try {
-    console.log('Checking tables and indexes...');
+    console.log('Checking database tables...');
     
-    // Check hourly_winners table
-    const hourlyWinnersCheck = await sql`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'hourly_winners'
-      );
+    // Create database connection
+    const sql = neon(process.env.POSTGRES_URL);
+    
+    // Check tables
+    const tables = await sql`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_name IN ('daily_winners', 'player_names')
     `;
-    console.log('hourly_winners table exists:', hourlyWinnersCheck.rows[0].exists);
-
-    // Check player_names table
-    const playerNamesCheck = await sql`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'player_names'
-      );
-    `;
-    console.log('player_names table exists:', playerNamesCheck.rows[0].exists);
-
+    
+    console.log('Tables found:', tables.map(t => t.table_name));
+    
     // Check indexes
-    const indexesCheck = await sql`
-      SELECT indexname 
+    const indexes = await sql`
+      SELECT indexname, tablename 
       FROM pg_indexes 
-      WHERE indexname IN (
-        'idx_hourly_winners_timestamp',
-        'idx_hourly_winners_player',
-        'idx_player_names_address'
-      );
+      WHERE tablename IN ('daily_winners', 'player_names')
     `;
-    console.log('Found indexes:', indexesCheck.rows.map(row => row.indexname));
-
+    
+    console.log('Indexes found:', indexes.map(i => `${i.indexname} on ${i.tablename}`));
+    
   } catch (error) {
     console.error('Error checking tables:', error);
     process.exit(1);
