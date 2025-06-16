@@ -232,6 +232,13 @@ export default function Home() {
             >
               View Leaderboard
             </a>
+            <a
+              href="/daily-winners"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Daily Winners
+            </a>
             <button
               onClick={handleReset}
               className={styles.resetButton}

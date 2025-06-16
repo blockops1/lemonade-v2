@@ -314,3 +314,28 @@
   background: linear-gradient(135deg, #ffebee 0%, #ffffff 100%);
   border: 1px solid rgba(244, 67, 54, 0.2);
 }
+
+.navigation {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 2rem;
+}
+
+.homeLink {
+  color: #4CAF50;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%);
+  transition: all 0.3s ease;
+  display: inline-block;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.homeLink:hover {
+  background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e9 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.2);
+}

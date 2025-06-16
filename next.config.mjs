@@ -13,6 +13,7 @@ const nextConfig = {
         formats: ['image/webp'],
         minimumCacheTTL: 60,
         dangerouslyAllowSVG: true,
+        domains: ['zkverify.io'],
     },
     async headers() {
         console.log('[Next.js Config] Setting up headers');
@@ -24,9 +25,7 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: `
                             default-src 'self';
-                            script-src 'self' 'unsafe-eval' 'unsafe-inline'
-                                https://*.vercel-analytics.com 
-                                https://*.zkverify.io;
+                            script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.vercel-analytics.com https://*.zkverify.io https://va.vercel-scripts.com;
                             style-src 'self' 'unsafe-inline'
                                 https://fonts.googleapis.com;
                             img-src 'self' 

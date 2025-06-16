@@ -2,7 +2,7 @@
   "name": "lemonade-v2",
   "version": "0.1.1",
   "private": true,
-  "author": "Horizen Labs <info@horizenlabs.io>",
+  "author": "blockops1",
   "license": "ISC",
   "type": "module",
   "scripts": {
@@ -11,17 +11,16 @@
     "start": "NODE_ENV=production next start",
     "lint": "next lint",
     "test:proof": "ts-node src/scripts/test_proof.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "migrate": "node scripts/run-migration.js",
+    "verify-migration": "node scripts/verify-migration.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
-    "@sentry/nextjs": "^9.27.0",
     "@talismn/connect-components": "1.1.9",
     "@talismn/connect-wallets": "^1.2.8",
     "@types/circomlibjs": "^0.1.6",
     "@types/dotenv": "^6.1.1",
-    "@upstash/ratelimit": "^2.0.5",
-    "@upstash/redis": "^1.35.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/postgres": "^0.10.0",
     "circomlib": "^2.0.5",
