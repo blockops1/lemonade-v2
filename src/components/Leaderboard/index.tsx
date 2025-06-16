@@ -92,7 +92,13 @@ const Leaderboard: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Leaderboard</h1>
+      <h1>Lemonade Stand Leaderboard</h1>
+      
+      <div className={styles.navigation}>
+        <a href="/" className={styles.homeLink}>
+          ← Back to Game
+        </a>
+      </div>
       
       {currentPlayerEntry && (
         <div className={styles.playerRank}>

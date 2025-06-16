@@ -13,15 +13,7 @@ const nextConfig = {
         formats: ['image/webp'],
         minimumCacheTTL: 60,
         dangerouslyAllowSVG: true,
-    },
-    async rewrites() {
-        console.log('[Next.js Config] Setting up rewrites');
-        return [
-            {
-                source: '/favicon.ico',
-                destination: '/public/favicon.ico',
-            },
-        ];
+        domains: ['zkverify.io'],
     },
     async headers() {
         console.log('[Next.js Config] Setting up headers');
@@ -33,10 +25,17 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: `
                             default-src 'self';
-                            script-src 'self' 'unsafe-eval' 'unsafe-inline';
-                            style-src 'self' 'unsafe-inline';
-                            img-src 'self' data: https: blob:;
-                            font-src 'self';
+                            script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.vercel-analytics.com https://*.zkverify.io https://va.vercel-scripts.com;
+                            style-src 'self' 'unsafe-inline'
+                                https://fonts.googleapis.com;
+                            img-src 'self' 
+                                https://*.vercel-analytics.com 
+                                https://*.zkverify.io 
+                                https://zkverify-testnet.subscan.io 
+                                https://*.subscan.io 
+                                data: blob:;
+                            font-src 'self' 
+                                https://fonts.gstatic.com;
                             object-src 'none';
                             base-uri 'self';
                             form-action 'self';
@@ -50,7 +49,12 @@ const nextConfig = {
                                 https://*.zkverify.io 
                                 wss://zkverify-testnet.subscan.io 
                                 https://zkverify-testnet.subscan.io
-                                https://*.subscan.io;
+                                https://*.subscan.io
+                                ws://localhost:3000
+                                http://localhost:3000;
+                            manifest-src 'self';
+                            frame-src 'self';
+                            media-src 'self';
                         `.replace(/\s+/g, ' ').trim()
                     },
                     {
@@ -116,7 +120,7 @@ const nextConfig = {
             type: 'json',
         });
 
-        // Handle web workers and Node.js polyfills
+        // Handle web-worker and other critical dependencies
         if (!isServer) {
             config.resolve.fallback = {
                 ...config.resolve.fallback,
@@ -141,19 +145,7 @@ const nextConfig = {
         ];
 
         return config;
-    },
-    // Configure runtime to handle web workers
-    experimental: {
-        esmExternals: 'loose',
-    },
-    // Ensure static files are served correctly
-    async rewrites() {
-        return [];
-    },
-    // Configure static file serving
-    async redirects() {
-        return [];
-    },
+    }
 };
 
 export default nextConfig;
