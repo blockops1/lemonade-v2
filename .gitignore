@@ -1,45 +1,60 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
-/.pnp
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+.pnp/
 .pnp.js
 
-# testing
-/coverage
+# Testing
+coverage/
 
-# next.js
-/.next/
-/out/
+# Next.js
+.next/
+out/
+build/
+dist/
 
-# production
-/build
-/dist
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local files
+.DS_Store
+*.pem
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
 
 # misc
 .DS_Store
 *.pem
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# database
+data/leaderboard.db
 
 # local env files
 .env
 .env*.local
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# database
-data/leaderboard.db
-
-.idea
 
 # sensitive files
 src/scripts/test_game_proof.cjs
