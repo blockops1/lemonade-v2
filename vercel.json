@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/daily-winners",
+      "path": "/api/daily-winners?cron_secret=${CRON_SECRET}",
       "schedule": "0 12 * * *"
     }
   ]

@@ -13,7 +13,8 @@
     "test:proof": "ts-node src/scripts/test_proof.ts",
     "typecheck": "tsc --noEmit",
     "migrate": "node scripts/run-migration.js",
-    "verify-migration": "node scripts/verify-migration.js"
+    "verify-migration": "node scripts/verify-migration.js",
+    "manual-daily-update": "node scripts/manual-daily-update.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
