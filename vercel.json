@@ -2,8 +2,7 @@
   "crons": [
     {
       "path": "/api/daily-winners",
-      "schedule": "0 12 * * *",
-      "method": "POST"
+      "schedule": "0 12 * * *"
     }
   ]
 } 
