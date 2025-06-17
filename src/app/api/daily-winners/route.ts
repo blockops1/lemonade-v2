@@ -20,11 +20,120 @@ if (!CRON_SECRET) {
 // Debug: Log the secret at module load time
 console.log('Module loaded with CRON_SECRET:', CRON_SECRET ? 'Set' : 'Not set');
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Check if this is a cron job request by looking for CRON_SECRET in query params
+    const { searchParams } = new URL(request.url);
+    const cronSecret = searchParams.get('cron_secret');
+    
+    // If CRON_SECRET is provided and matches, perform the daily update
+    if (cronSecret && cronSecret === CRON_SECRET) {
+      console.log('Received cron job request via GET method');
+      
+      const sql = neon(process.env.DATABASE_URL!);
+
+      // Get current date at noon UTC
+      const currentDate = new Date();
+      currentDate.setUTCHours(12, 0, 0, 0);
+      console.log('Current date (noon UTC):', currentDate.toISOString());
+
+      // First check if we have any data in the leaderboard
+      const leaderboardCheck = await sql`
+        SELECT COUNT(*) as count FROM leaderboard
+      `;
+      console.log('Leaderboard entries:', leaderboardCheck[0].count);
+
+      if (parseInt(leaderboardCheck[0].count) === 0) {
+        console.log('No entries in leaderboard');
+        return NextResponse.json(
+          { error: 'No leaderboard entries found' },
+          { status: 400 }
+        );
+      }
+
+      // Get top 10 players from the main leaderboard
+      console.log('Fetching top 10 players from leaderboard...');
+      const topPlayers = await sql`
+        SELECT 
+          address as player_address,
+          COALESCE(
+            (SELECT name FROM player_names WHERE address = leaderboard.address),
+            address
+          ) as player_name,
+          score,
+          ROW_NUMBER() OVER (ORDER BY score DESC) as rank
+        FROM leaderboard
+        ORDER BY score DESC
+        LIMIT 10
+      `;
+
+      console.log('Top players found:', {
+        count: topPlayers.length,
+        players: topPlayers
+      });
+
+      if (topPlayers.length === 0) {
+        console.log('No top players found');
+        return NextResponse.json(
+          { error: 'No top players found' },
+          { status: 400 }
+        );
+      }
+
+      // Insert the top 10 players into daily_winners
+      console.log('Inserting winners into daily_winners table...');
+      for (const player of topPlayers) {
+        try {
+          await sql`
+            INSERT INTO daily_winners (
+              date_timestamp,
+              player_address,
+              player_name,
+              score,
+              rank
+            ) VALUES (
+              ${currentDate.toISOString()},
+              ${player.player_address},
+              ${player.player_name},
+              ${player.score},
+              ${player.rank}
+            )
+          `;
+        } catch (insertError) {
+          console.error('Error inserting player:', {
+            player,
+            error: insertError
+          });
+          throw insertError;
+        }
+      }
+
+      // Delete entries older than 7 days
+      console.log('Cleaning up old entries...');
+      await sql`
+        DELETE FROM daily_winners
+        WHERE date_timestamp < NOW() - INTERVAL '7 days'
+      `;
+
+      // Reset the leaderboard
+      console.log('Resetting leaderboard...');
+      await sql`
+        TRUNCATE TABLE leaderboard
+      `;
+
+      console.log('Daily winners update and leaderboard reset completed successfully');
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Daily winners updated and leaderboard reset',
+        winnersCount: topPlayers.length,
+        timestamp: currentDate.toISOString()
+      });
+    }
+
+    // Regular GET request - fetch daily winners
     console.log('Fetching daily winners...');
     
-    const sql = neon(process.env.POSTGRES_URL!);
+    const sql = neon(process.env.DATABASE_URL!);
     
     // First, verify the table exists
     const tableCheck = await sql`
@@ -78,7 +187,7 @@ export async function GET() {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error fetching daily winners:', error);
+    console.error('Error in GET method:', error);
     if (error instanceof Error) {
       console.error('Error details:', {
         message: error.message,
@@ -87,7 +196,7 @@ export async function GET() {
       });
     }
     return NextResponse.json(
-      { error: 'Failed to fetch daily winners' },
+      { error: 'Failed to process request' },
       { status: 500 }
     );
   }
